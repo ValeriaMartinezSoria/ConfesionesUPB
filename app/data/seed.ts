@@ -1,22 +1,21 @@
-﻿export type Category = "random" | "amor" | "academico";
-export type Comment = { id: number; user: string; content: string; date: number };
+﻿export type Category = "amor" | "academico" | "random";
+
 export type Confesion = {
   id: number;
-  user: string;
-  nexo: string;
   content: string;
   category: Category;
   date: number;
   likes: number;
-  comments: Comment[];
+  imageUri?: string;
+  nexo?: string;
 };
 
-export const seedPendientes: Confesion[] = [
-  { id: 1001, user: "anon", nexo: "Bloque 6", content: "Quiero confesar que me da miedo presentar mi primer parcial, pero lo voy a intentar.", category: "random", date: Date.now() - 1000 * 60 * 30, likes: 0, comments: [] }
+export const seedAprobadas: Confesion[] = [
+  { id: 1, content: "Me gusta alguien del aula 302 pero no sé cómo hablarle.", category: "amor", date: Date.now() - 1000 * 60 * 60, likes: 2, nexo: "Anon" },
+  { id: 2, content: "El examen de cálculo estuvo brutal, ojalá suban la nota.", category: "academico", date: Date.now() - 1000 * 60 * 160, likes: 4, nexo: "Anon" },
+  { id: 3, content: "Vi un perrito en la cafetería y me alegró el día.", category: "random", date: Date.now() - 1000 * 60 * 300, likes: 1, nexo: "Anon" }
 ];
 
-export const seedAprobadas: Confesion[] = [
-  { id: 1, user: "anon", nexo: "Cafetería", content: "Me puse nervios@ hablando con mi crush en la fila 😅", category: "amor", date: Date.now() - 1000 * 60 * 60 * 2, likes: 12, comments: [] },
-  { id: 2, user: "anon", nexo: "Biblioteca", content: "Estudié toda la noche y aún así me confundí en el examen.", category: "academico", date: Date.now() - 1000 * 60 * 45, likes: 7, comments: [] },
-  { id: 3, user: "anon", nexo: "Pasillo central", content: "El evento de ayer estuvo buenísimo 🔥", category: "random", date: Date.now() - 1000 * 60 * 10, likes: 3, comments: [] }
+export const seedPendientes: Confesion[] = [
+  { id: 101, content: "Confieso que dejé todo para la última semana.", category: "academico", date: Date.now() - 1000 * 60 * 30, likes: 0, nexo: "Anon" }
 ];

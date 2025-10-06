@@ -1,19 +1,20 @@
 import { create } from "zustand";
 
-type Theme = "light" | "dark";
+export type ThemePref = "light" | "dark" | "system";
 
-type UIStore = {
-  theme: Theme;
+type State = {
   isAdmin: boolean;
-  setTheme: (t: Theme) => void;
-  toggleTheme: () => void;
-  toggleAdmin: () => void;
+  theme: ThemePref;
 };
 
-export const useUIStore = create<UIStore>((set, get) => ({
-  theme: "light",
+type Actions = {
+  toggleAdmin: () => void;
+  setTheme: (t: ThemePref) => void;
+};
+
+export const useUIStore = create<State & Actions>((set) => ({
   isAdmin: false,
-  setTheme: (t) => set({ theme: t }),
-  toggleTheme: () => set({ theme: get().theme === "light" ? "dark" : "light" }),
+  theme: "system",
   toggleAdmin: () => set((s) => ({ isAdmin: !s.isAdmin })),
+  setTheme: (t) => set({ theme: t }),
 }));

@@ -1,56 +1,55 @@
 ﻿import { useColorScheme } from "react-native";
-import { PALETTE } from "../theme/palette";
-import { useAppearance } from "../store/useAppearance";
+import { useUIStore } from "../store/uiStore";
 
 export type Palette = {
   background: string;
   surface: string;
+  border: string;
   text: string;
   subtle: string;
-  border: string;
-  primary: string;
-  secondary: string;
   headerBg: string;
   headerText: string;
   tabBarBg: string;
   tabActive: string;
   tabInactive: string;
+  primary: string;
+  secondary: string;
 };
 
 const light: Palette = {
-  background: PALETTE.gray,
-  surface: "#ffffff",
-  text: PALETTE.navy,
-  subtle: "#6B7280",
-  border: "#D7DCE3",
-  primary: PALETTE.yellow,
-  secondary: PALETTE.blue,
-  headerBg: "#ffffff",
-  headerText: PALETTE.navy,
-  tabBarBg: "#ffffff",
-  tabActive: PALETTE.yellow,
-  tabInactive: "#8AA0B7"
+  background: "#F1F1F1",
+  surface: "#FFFFFF",
+  border: "#E3E3E3",
+  text: "#23120B",
+  subtle: "#6E6E6E",
+  headerBg: "#FFFFFF",
+  headerText: "#23120B",
+  tabBarBg: "#FFFFFF",
+  tabActive: "#21209C",
+  tabInactive: "#8C8C8C",
+  primary: "#21209C",
+  secondary: "#FDB827",
 };
 
 const dark: Palette = {
-  background: "#1F2544",
-  surface: "#2A3054",
-  text: PALETTE.gray,
-  subtle: "#BFC7D5",
-  border: "#3E456A",
-  primary: PALETTE.yellow,
-  secondary: PALETTE.blue,
-  headerBg: PALETTE.navy,
-  headerText: PALETTE.gray,
-  tabBarBg: PALETTE.navy,
-  tabActive: PALETTE.yellow,
-  tabInactive: "#94A9BE"
+  background: "#23120B",
+  surface: "#2B1A12",
+  border: "#3B2A22",
+  text: "#F1F1F1",
+  subtle: "#C8C8C8",
+  headerBg: "#23120B",
+  headerText: "#F1F1F1",
+  tabBarBg: "#23120B",
+  tabActive: "#FDB827",
+  tabInactive: "#9A9A9A",
+  primary: "#21209C",
+  secondary: "#FDB827",
 };
 
 export function useThemeColors() {
-  const sys = useColorScheme() ?? "light";
-  const mode = useAppearance((s) => s.mode);
-  const effective = mode === "system" ? sys : mode;
+  const sys = useColorScheme();
+  const pref = useUIStore((s) => s.theme);
+  const effective = pref === "system" ? (sys === "dark" ? "dark" : "light") : pref;
   const colors = effective === "dark" ? dark : light;
   return { colors, effective };
 }
