@@ -1,4 +1,4 @@
-﻿{
+{
   "expo": {
     "scheme": "confess-app",
     "name": "Confesiones UPB",
@@ -29,7 +29,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "assetBundlePatterns": ["**/*"],
-    "plugins": ["expo-router"]
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ]
   }
 }

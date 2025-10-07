@@ -32,17 +32,17 @@ const light: Palette = {
 };
 
 const dark: Palette = {
-  background: "#23120B",
-  surface: "#2B1A12",
+  background: "#000000ff",
+  surface: "#0e0805ff",
   border: "#3B2A22",
   text: "#F1F1F1",
   subtle: "#C8C8C8",
-  headerBg: "#23120B",
+  headerBg: "#000000ff",
   headerText: "#F1F1F1",
-  tabBarBg: "#23120B",
+  tabBarBg: "#070301ff",
   tabActive: "#FDB827",
   tabInactive: "#9A9A9A",
-  primary: "#21209C",
+  primary: "#4343ccff",
   secondary: "#FDB827",
 };
 

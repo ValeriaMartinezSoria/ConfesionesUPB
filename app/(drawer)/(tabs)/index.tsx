@@ -1,10 +1,10 @@
-﻿import React, { useMemo } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { View, Text, FlatList, Pressable, StyleSheet, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useConfesionesStore } from "../../store/useConfesionesStore";
 import { useThemeColors } from "../../hooks/useThemeColors";
-import type { Confesion } from "../../data/seed";
+import type { Confesion, Category } from "../../data/seed";
 
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;
@@ -29,7 +29,20 @@ export default function ConfesionesList() {
   const aprobadas = useConfesionesStore((s) => s.aprobadas);
   const toggleLike = useConfesionesStore((s) => s.toggleLike);
   const likedIds = useConfesionesStore((s) => s.likedIds);
-  const data = useMemo<Confesion[]>(() => [...aprobadas].sort((a, b) => b.date - a.date), [aprobadas]);
+
+  // selectedCategory puede ser 'all' o uno de los Category definidos en seed.ts
+  const [selectedCategory, setSelectedCategory] = useState<'all' | Category>('all');
+
+  // lista de opciones (minúsculas para coincidir con seed.ts)
+  const categories: Array<'all' | Category> = ['all', 'amor', 'academico', 'random'];
+
+  // filtrado y ordenado: usamos if para que TS haga narrowing correctamente
+  const data = useMemo<Confesion[]>(() => {
+    const sorted = [...aprobadas].sort((a, b) => b.date - a.date);
+    if (selectedCategory === 'all') return sorted;
+    // aquí TS sabe que selectedCategory es Category (no 'all')
+    return sorted.filter((c) => c.category === selectedCategory);
+  }, [aprobadas, selectedCategory]);
 
   const catColor = isLight ? colors.primary : colors.secondary;
   const likedColor = isLight ? colors.primary : colors.secondary;
@@ -43,52 +56,105 @@ export default function ConfesionesList() {
     );
   }
 
+  const displayName = (cat: 'all' | Category) => {
+    if (cat === 'all') return 'Todos';
+    if (cat === 'academico') return 'Académico';
+    // para 'amor' y 'random' basta capitalizar
+    return cat.charAt(0).toUpperCase() + cat.slice(1);
+  };
+
   return (
-    <FlatList
-      data={data}
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={styles.list}
-      keyExtractor={(item) => String(item.id)}
-      renderItem={({ item }) => {
-        const liked = likedIds.includes(item.id);
-        return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={styles.filterRow}>
+        {categories.map((cat) => (
           <Pressable
-            style={[styles.card, { borderColor: colors.border, backgroundColor: colors.surface }, cardShadow]}
-            onPress={() => router.push(`/(drawer)/(tabs)/confesion/${item.id}`)}
+            key={cat}
+            onPress={() => setSelectedCategory(cat)}
+            style={[
+              styles.filterPill,
+              {
+                borderColor: colors.border,
+                backgroundColor: selectedCategory === cat ? colors.primary : "transparent",
+              },
+            ]}
           >
-            <View style={styles.rowBetween}>
-              <View style={{ flex: 1 }}>
-                <View style={styles.row}>
-                  <Ionicons name="eye-off-outline" size={14} color={colors.subtle} />
-                  <Text style={[styles.nexo, { color: colors.subtle }]}>{item.nexo}</Text>
-                </View>
-                <Text style={[styles.time, { color: colors.subtle }]}>{timeAgo(item.date)}</Text>
-              </View>
-              <View style={[styles.pill, { borderColor: catColor, backgroundColor: "transparent" }]}>
-                <Text style={[styles.pillText, { color: catColor }]}>{item.category}</Text>
-              </View>
-            </View>
-            <Text style={[styles.content, { color: colors.text }]} numberOfLines={3}>{item.content}</Text>
-            <View style={styles.rowBetween}>
-              <Text style={[styles.meta, { color: colors.subtle }]}>{item.likes} {item.likes === 1 ? "like" : "likes"}</Text>
-              <Pressable
-                hitSlop={8}
-                style={[styles.likeBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
-                onPress={() => toggleLike(item.id)}
-              >
-                <Ionicons name={liked ? "heart" : "heart-outline"} size={18} color={liked ? likedColor : colors.tabInactive} />
-                <Text style={[styles.likeText, { color: liked ? likedColor : colors.tabInactive }]}>{liked ? "Te gusta" : "Me gusta"}</Text>
-              </Pressable>
-            </View>
+            <Text
+              style={[
+                styles.filterText,
+                { color: selectedCategory === cat ? colors.surface : colors.text },
+              ]}
+            >
+              {displayName(cat)}
+            </Text>
           </Pressable>
-        );
-      }}
-    />
+        ))}
+      </View>
+
+      <FlatList
+        data={data}
+        contentContainerStyle={styles.list}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => {
+          const liked = likedIds.includes(item.id);
+          return (
+            <Pressable
+              style={[styles.card, { borderColor: colors.border, backgroundColor: colors.surface }, cardShadow]}
+              onPress={() => router.push(`/(drawer)/(tabs)/confesion/${item.id}`)}
+            >
+              <View style={styles.rowBetween}>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.row}>
+                    <Ionicons name="eye-off-outline" size={14} color={colors.subtle} />
+                    <Text style={[styles.nexo, { color: colors.subtle }]}>{item.nexo}</Text>
+                  </View>
+                  <Text style={[styles.time, { color: colors.subtle }]}>{timeAgo(item.date)}</Text>
+                </View>
+                <View style={[styles.pill, { borderColor: catColor }]}>
+                  <Text style={[styles.pillText, { color: catColor }]}>
+                    {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.content, { color: colors.text }]} numberOfLines={3}>
+                {item.content}
+              </Text>
+              <View style={styles.rowBetween}>
+                <Text style={[styles.meta, { color: colors.subtle }]}>
+                  {item.likes} {item.likes === 1 ? "like" : "likes"}
+                </Text>
+                <Pressable
+                  hitSlop={8}
+                  style={[styles.likeBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                  onPress={() => toggleLike(item.id)}
+                >
+                  <Ionicons
+                    name={liked ? "heart" : "heart-outline"}
+                    size={18}
+                    color={liked ? likedColor : colors.tabInactive}
+                  />
+                  <Text
+                    style={[
+                      styles.likeText,
+                      { color: liked ? likedColor : colors.tabInactive },
+                    ]}
+                  >
+                    {liked ? "Te gusta" : "Me gusta"}
+                  </Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          );
+        }}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   list: { padding: 16, gap: 14 },
+  filterRow: { flexDirection: "row", justifyContent: "space-around", paddingVertical: 10 },
+  filterPill: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 },
+  filterText: { fontSize: 13, fontWeight: "600" },
   card: { borderRadius: 16, borderWidth: 1, padding: 14, gap: 10 },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
@@ -101,5 +167,5 @@ const styles = StyleSheet.create({
   empty: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8 },
   emptyText: { fontSize: 13 },
   pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
-  pillText: { fontSize: 11, fontWeight: "700", textTransform: "capitalize" }
+  pillText: { fontSize: 11, fontWeight: "700", textTransform: "capitalize" },
 });

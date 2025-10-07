@@ -4,6 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import { useConfesionesStore } from "../../store/useConfesionesStore";
 import type { Confesion } from "../../data/seed";
+import { Keyboard, TouchableWithoutFeedback } from "react-native";
+
+
 
 type Category = "amor" | "academico" | "random";
 
@@ -25,6 +28,18 @@ export default function NuevaConfesion() {
   const addPendiente = useConfesionesStore((s) => s.addPendiente);
   const [texto, setTexto] = useState("");
   const [categoria, setCategoria] = useState<Category>("amor");
+  const [carrera, setCarrera] = useState("Administración de Empresas");
+
+  const carreras = [
+    "Administración de Empresas",
+    "Comunicación",
+    "Derecho",
+    "Economía",
+    "Ingeniería Comercial",
+    "Ingeniería Financiera",
+    "Ingeniería de Sistemas",
+    "Diseño Gráfico",
+  ];
 
   const len = texto.trim().length;
   const valid = len >= 10 && len <= 500;
@@ -35,20 +50,23 @@ export default function NuevaConfesion() {
     return colors.primary;
   }, [len, valid, colors]);
 
-  const submit = () => {
-    if (!valid) return;
-    const conf: Confesion = {
-      id: Date.now(),
-      content: texto.trim(),
-      category: categoria,
-      date: Date.now(),
-      likes: 0,
-      nexo: "anónimo",
-    };
-    addPendiente(conf);
-    setTexto("");
-    setCategoria("amor");
+const submit = () => {
+  if (!valid) return;
+  const conf: Confesion = {
+    id: Date.now(),
+    content: texto.trim(),
+    category: categoria,
+    carrera: carrera,
+    date: Date.now(),
+    likes: 0,
+    nexo: "anónimo",
   };
+  addPendiente(conf);
+  Keyboard.dismiss(); // 👈 esta línea hace que el teclado desaparezca
+  setTexto("");
+  setCategoria("amor");
+  setCarrera("Administración de Empresas");
+};
 
   const chipColor = isLight ? colors.primary : colors.secondary;
   const label = (c: Category) => (c === "amor" ? "Amor" : c === "academico" ? "Académico" : "Random");
@@ -59,7 +77,9 @@ export default function NuevaConfesion() {
   const ctaRipple = alpha(isLight ? colors.primary : colors.secondary, 0.2);
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      {/* 📝 Campo de texto */}
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardShadow]}>
         <Text style={[styles.label, { color: colors.text }]}>Tu confesión</Text>
         <TextInput
@@ -77,6 +97,7 @@ export default function NuevaConfesion() {
         </View>
       </View>
 
+      {/* 🔖 Categoría */}
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.label, { color: colors.text }]}>Categoría</Text>
         <View style={styles.rowChips}>
@@ -99,6 +120,33 @@ export default function NuevaConfesion() {
         </View>
       </View>
 
+      {/* 🎓 Selector de carrera */}
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.label, { color: colors.text }]}>Carrera</Text>
+        <View style={styles.rowChips}>
+          {carreras.map((c) => {
+            const selected = carrera === c;
+            return (
+              <Pressable
+                key={c}
+                onPress={() => setCarrera(c)}
+                style={[
+                  styles.chip,
+                  {
+                    borderColor: selected ? chipColor : colors.border,
+                    backgroundColor: selected ? alpha(chipColor, 0.12) : "transparent",
+                  },
+                ]}
+                android_ripple={{ color: alpha(chipColor, 0.2) }}
+              >
+                <Text style={[styles.chipText, { color: selected ? chipColor : colors.text }]}>{c}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* 🚀 Botón enviar */}
       <Pressable
         onPress={submit}
         disabled={!valid}
@@ -116,6 +164,7 @@ export default function NuevaConfesion() {
         <Text style={[styles.btnText, { color: ctaFg }]}>Enviar para moderación</Text>
       </Pressable>
     </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -129,6 +178,15 @@ const styles = StyleSheet.create({
   rowChips: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   chip: { paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderRadius: 999 },
   chipText: { fontSize: 13, fontWeight: "700" },
-  btn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, borderWidth: 1 },
+  btn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+  },
   btnText: { fontWeight: "800", fontSize: 14, letterSpacing: 0.3 },
 });
