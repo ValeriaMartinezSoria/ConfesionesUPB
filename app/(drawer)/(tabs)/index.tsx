@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useConfesionesStore } from "../../store/useConfesionesStore";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import type { Confesion, Category } from "../../data/seed";
+import { Image } from "react-native"; 
 
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;
@@ -178,6 +179,19 @@ export default function ConfesionesList() {
               >
                 {item.content}
               </Text>
+              {item.image && (
+              <Image
+               source={item.image}
+                style={{
+               width: "100%",
+               height: 200,
+               borderRadius: 12,
+                marginTop: 8,
+    }}
+    resizeMode="cover"
+  />
+)}
+
 
               <View style={styles.rowBetween}>
                 <Text style={[styles.meta, { color: colors.subtle }]}>

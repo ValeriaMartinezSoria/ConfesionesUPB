@@ -2,6 +2,7 @@
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Confesion, Category } from "../data/seed";
+import { AnyActionArg } from "react";
 
 type State = {
   pendientes: Confesion[];
@@ -10,7 +11,7 @@ type State = {
 };
 
 type Actions = {
-  addPendiente: (c: { content: string; category: Category; carrera: string; imageUri?: string }) => void;
+  addPendiente: (c: { content: string; category: Category; carrera: string; image: any }) => void;
   approve: (id: number) => void;
   reject: (id: number) => void;
   toggleLike: (id: number) => void;
@@ -25,7 +26,7 @@ export const useConfesionesStore = create<State & Actions>()(
       aprobadas: [],
       likedIds: [],
 
-      addPendiente: ({ content, category, carrera, imageUri }) => {
+      addPendiente: ({ content, category, carrera, image }) => {
         const id = Math.floor(Math.random() * 1_000_000) + 1000;
         const nuevo: Confesion = {
           id,
@@ -34,7 +35,7 @@ export const useConfesionesStore = create<State & Actions>()(
           carrera,
           date: Date.now(),
           likes: 0,
-          imageUri,
+          image,
           nexo: "Anónimo",
         };
         set((s) => ({ pendientes: [nuevo, ...s.pendientes] }));

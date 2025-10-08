@@ -7,7 +7,7 @@ export type Confesion = {
   carrera: string;
   date: number;
   likes: number;
-  imageUri?: string;
+  image?: any;
   nexo?: string;
 };
 
@@ -38,6 +38,7 @@ export const seedAprobadas: Confesion[] = [
     date: Date.now() - 1000 * 60 * 300,
     likes: 1,
     nexo: "Anónimo",
+    image: require("../../assets/icon.png"),
   },
 ];
 

@@ -91,11 +91,19 @@ const submit = () => {
           maxLength={500}
           style={[styles.input, { color: colors.text }]}
         />
+        <Pressable
+          style={styles.cameraButton}
+          onPress={() => console.log("Abrir cámara (futuro)")}>
+          <Ionicons name="camera-outline" size={22} color={colors.subtle} />
+          <Text style={[styles.cameraText, { color: colors.subtle }]}>Agregar imagen</Text>
+        </Pressable>
+
         <View style={styles.rowBetween}>
           <Text style={[styles.hint, { color: counterColor }]}>{len}/500</Text>
           <Text style={[styles.hint, { color: colors.subtle }]}>mín. 10 caracteres</Text>
         </View>
       </View>
+
 
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.label, { color: colors.text }]}>Categoría</Text>
@@ -175,6 +183,16 @@ const styles = StyleSheet.create({
   rowChips: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   chip: { paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderRadius: 999 },
   chipText: { fontSize: 13, fontWeight: "700" },
+  cameraButton: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 6,
+  marginTop: 8,
+},
+cameraText: {
+  fontSize: 13,
+  fontWeight: "500",
+},
   btn: {
     flexDirection: "row",
     alignItems: "center",

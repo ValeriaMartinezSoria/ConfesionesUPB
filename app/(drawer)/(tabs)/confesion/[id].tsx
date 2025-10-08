@@ -1,9 +1,8 @@
 ﻿import React from "react";
-import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useLocalSearchParams, Redirect, useRouter, Stack } from "expo-router";
 import { useConfesionesStore } from "../../../store/useConfesionesStore";
 import { useThemeColors } from "../../../hooks/useThemeColors";
-import type { Confesion } from "../../../data/seed";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function ConfesionDetail() {
@@ -44,7 +43,7 @@ export default function ConfesionDetail() {
 
         <Text style={[styles.content, { color: colors.text }]}>{confesion.content}</Text>
 
-        {/* 🎓 Nueva sección con la carrera */}
+      
         <View style={styles.infoBox}>
           <Ionicons name="school-outline" size={18} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.text }]}>
@@ -52,7 +51,7 @@ export default function ConfesionDetail() {
           </Text>
         </View>
 
-        {/* 📂 Categoría */}
+      
         <View style={styles.infoBox}>
           <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.text }]}>
@@ -60,12 +59,12 @@ export default function ConfesionDetail() {
           </Text>
         </View>
 
-        {/* ❤️ Likes */}
         <View style={styles.infoBox}>
           <Ionicons name="heart-outline" size={18} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.text }]}>
             {confesion.likes} {confesion.likes === 1 ? "like" : "likes"}
           </Text>
+          
         </View>
       </View>
     </ScrollView>
