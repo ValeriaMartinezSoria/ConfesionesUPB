@@ -3,12 +3,12 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Confesion, Category } from "../data/seed";
 import type { Carrera } from "./useUserStore";
-import { AnyActionArg } from "react";
 
 type State = {
   pendientes: Confesion[];
   aprobadas: Confesion[];
   likedIds: number[];
+  confesiones: Confesion[]; 
 };
 
 type Actions = {
@@ -27,6 +27,11 @@ export const useConfesionesStore = create<State & Actions>()(
       pendientes: [],
       aprobadas: [],
       likedIds: [],
+
+      
+      get confesiones() {
+        return [...get().aprobadas, ...get().pendientes];
+      },
 
       addPendiente: ({ content, category, carrera, image }) => {
         const id = Math.floor(Math.random() * 1_000_000) + 1000;
@@ -58,17 +63,28 @@ export const useConfesionesStore = create<State & Actions>()(
       },
 
       toggleLike: (id) => {
-        const { likedIds } = get();
-        const has = likedIds.includes(id);
-        set((s) => ({
-          likedIds: has
-            ? s.likedIds.filter((x) => x !== id)
-            : [...s.likedIds, id],
-          aprobadas: s.aprobadas.map((c) =>
-            c.id === id ? { ...c, likes: c.likes + (has ? -1 : 1) } : c
-          ),
-        }));
-      },
+  const { likedIds } = get();
+  const has = likedIds.includes(id);
+
+  set((s) => {
+  
+    const nuevasAprobadas = s.aprobadas.map((c) =>
+      c.id === id ? { ...c, likes: c.likes + (has ? -1 : 1) } : c
+    );
+
+
+    const nuevasConfesiones = nuevasAprobadas.sort((a, b) => b.date - a.date);
+
+    return {
+      likedIds: has
+        ? s.likedIds.filter((x) => x !== id)
+        : [...s.likedIds, id],
+      aprobadas: nuevasAprobadas,
+      confesiones: nuevasConfesiones,
+    };
+  });
+},
+
 
       seed: (aprobadas, pendientes) => set({ aprobadas, pendientes }),
 

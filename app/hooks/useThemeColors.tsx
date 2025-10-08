@@ -42,7 +42,7 @@ const dark: Palette = {
   tabBarBg: "#070301ff",
   tabActive: "#FDB827",
   tabInactive: "#9A9A9A",
-  primary: "#4343ccff",
+  primary: "#3a3a8aff",
   secondary: "#FDB827",
 };
 

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Platform,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,7 +15,6 @@ import { useConfesionesStore } from "../../store/useConfesionesStore";
 import { useUserStore } from "../../store/useUserStore";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import type { Confesion, Category } from "../../data/seed";
-import { Image } from "react-native"; 
 
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;
@@ -31,11 +31,11 @@ function timeAgo(ts: number) {
 const cardShadow =
   Platform.OS === "ios"
     ? {
-      shadowColor: "#000",
-      shadowOpacity: 0.08,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-    }
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+      }
     : { elevation: 2 };
 
 export default function ConfesionesList() {
@@ -43,14 +43,12 @@ export default function ConfesionesList() {
   const isLight = effective === "light";
   const router = useRouter();
 
+  const confesiones = useConfesionesStore((s) => s.confesiones); 
   const getAprobadasSorted = useConfesionesStore((s) => s.getAprobadasSorted);
   const toggleLike = useConfesionesStore((s) => s.toggleLike);
   const likedIds = useConfesionesStore((s) => s.likedIds);
   const hasHydrated = useConfesionesStore.persist.hasHydrated();
-
-  
   const carrerasDeInteres = useUserStore((s) => s.carrerasDeInteres);
-
 
   if (!hasHydrated) {
     return (
@@ -70,19 +68,20 @@ export default function ConfesionesList() {
     );
   }
 
-
-  const [selectedCategory, setSelectedCategory] = useState<"all" | Category>("all");
+  const [selectedCategory, setSelectedCategory] = useState<"all" | Category>(
+    "all"
+  );
   const categories: Array<"all" | Category> = ["all", "amor", "academico", "random"];
 
+  // ✅ Actualiza también cuando cambia el array de confesiones
   const data = useMemo<Confesion[]>(() => {
     const sorted = getAprobadasSorted(carrerasDeInteres);
     if (selectedCategory === "all") return sorted;
     return sorted.filter((c) => c.category === selectedCategory);
-  }, [getAprobadasSorted, carrerasDeInteres, selectedCategory]);
+  }, [confesiones, getAprobadasSorted, carrerasDeInteres, selectedCategory]);
 
   const catColor = isLight ? colors.primary : colors.secondary;
   const likedColor = isLight ? colors.primary : colors.secondary;
-
 
   if (!data.length) {
     return (
@@ -101,15 +100,26 @@ export default function ConfesionesList() {
     return cat.charAt(0).toUpperCase() + cat.slice(1);
   };
 
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Mostrar indicador de filtrado por interés */}
       {carrerasDeInteres.length > 0 && (
-        <View style={[styles.interestBanner, { backgroundColor: colors.primary + "15", borderColor: colors.primary }]}>
+        <View
+          style={[
+            styles.interestBanner,
+            {
+              backgroundColor: colors.primary + "15",
+              borderColor: colors.primary,
+            },
+          ]}
+        >
           <Ionicons name="star" size={16} color={colors.primary} />
           <Text style={[styles.interestText, { color: colors.primary }]}>
-            Mostrando primero: {carrerasDeInteres.slice(0, 2).join(", ")}{carrerasDeInteres.length > 2 ? ` y ${carrerasDeInteres.length - 2} más` : ""}
+            Mostrando primero:{" "}
+            {carrerasDeInteres.slice(0, 2).join(", ")}
+            {carrerasDeInteres.length > 2
+              ? ` y ${carrerasDeInteres.length - 2} más`
+              : ""}
           </Text>
         </View>
       )}
@@ -133,7 +143,9 @@ export default function ConfesionesList() {
                 styles.filterText,
                 {
                   color:
-                    selectedCategory === cat ? colors.surface : colors.text,
+                    selectedCategory === cat
+                      ? colors.surface
+                      : colors.text,
                 },
               ]}
             >
@@ -199,22 +211,31 @@ export default function ConfesionesList() {
               >
                 {item.content}
               </Text>
-              {item.image && (
-              <Image
-               source={item.image}
-                style={{
-               width: "100%",
-               height: 200,
-               borderRadius: 12,
-                marginTop: 8,
-    }}
-    resizeMode="cover"
-  />
-)}
 
+              {item.image && (
+                <Image
+                  source={item.image}
+                  style={{
+                    width: "100%",
+                    height: 200,
+                    borderRadius: 12,
+                    marginTop: 8,
+                  }}
+                  resizeMode="cover"
+                />
+              )}
 
               <View style={styles.rowBetween}>
-                <Text style={[styles.carrera, { color: isFromInterest ? colors.primary : colors.subtle }]}>
+                <Text
+                  style={[
+                    styles.carrera,
+                    {
+                      color: isFromInterest
+                        ? colors.primary
+                        : colors.subtle,
+                    },
+                  ]}
+                >
                   📚 {item.carrera}
                 </Text>
               </View>
@@ -243,7 +264,9 @@ export default function ConfesionesList() {
                     style={[
                       styles.likeText,
                       {
-                        color: liked ? likedColor : colors.tabInactive,
+                        color: liked
+                          ? likedColor
+                          : colors.tabInactive,
                       },
                     ]}
                   >
