@@ -1,5 +1,13 @@
 ﻿import React, { useMemo, useState } from "react";
-import { View, Text, FlatList, Pressable, StyleSheet, Platform } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useConfesionesStore } from "../../store/useConfesionesStore";
@@ -18,51 +26,77 @@ function timeAgo(ts: number) {
   return `Hace ${d} d`;
 }
 
-const cardShadow = Platform.OS === "ios"
-  ? { shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } }
-  : { elevation: 2 };
+const cardShadow =
+  Platform.OS === "ios"
+    ? {
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+      }
+    : { elevation: 2 };
 
 export default function ConfesionesList() {
   const { colors, effective } = useThemeColors();
   const isLight = effective === "light";
   const router = useRouter();
+
   const aprobadas = useConfesionesStore((s) => s.aprobadas);
   const toggleLike = useConfesionesStore((s) => s.toggleLike);
   const likedIds = useConfesionesStore((s) => s.likedIds);
+  const hasHydrated = useConfesionesStore.persist.hasHydrated();
 
-  // selectedCategory puede ser 'all' o uno de los Category definidos en seed.ts
-  const [selectedCategory, setSelectedCategory] = useState<'all' | Category>('all');
 
-  // lista de opciones (minúsculas para coincidir con seed.ts)
-  const categories: Array<'all' | Category> = ['all', 'amor', 'academico', 'random'];
+  if (!hasHydrated) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ color: colors.subtle, marginTop: 10 }}>
+          Cargando confesiones...
+        </Text>
+      </View>
+    );
+  }
 
-  // filtrado y ordenado: usamos if para que TS haga narrowing correctamente
+
+  const [selectedCategory, setSelectedCategory] = useState<"all" | Category>("all");
+  const categories: Array<"all" | Category> = ["all", "amor", "academico", "random"];
+
   const data = useMemo<Confesion[]>(() => {
     const sorted = [...aprobadas].sort((a, b) => b.date - a.date);
-    if (selectedCategory === 'all') return sorted;
-    // aquí TS sabe que selectedCategory es Category (no 'all')
+    if (selectedCategory === "all") return sorted;
     return sorted.filter((c) => c.category === selectedCategory);
   }, [aprobadas, selectedCategory]);
 
   const catColor = isLight ? colors.primary : colors.secondary;
   const likedColor = isLight ? colors.primary : colors.secondary;
 
+
   if (!data.length) {
     return (
       <View style={[styles.empty, { backgroundColor: colors.background }]}>
         <Ionicons name="chatbubbles-outline" size={40} color={colors.subtle} />
-        <Text style={[styles.emptyText, { color: colors.subtle }]}>No hay confesiones aún.</Text>
+        <Text style={[styles.emptyText, { color: colors.subtle }]}>
+          No hay confesiones aún.
+        </Text>
       </View>
     );
   }
 
-  const displayName = (cat: 'all' | Category) => {
-    if (cat === 'all') return 'Todos';
-    if (cat === 'academico') return 'Académico';
-    // para 'amor' y 'random' basta capitalizar
+  const displayName = (cat: "all" | Category) => {
+    if (cat === "all") return "Todos";
+    if (cat === "academico") return "Académico";
     return cat.charAt(0).toUpperCase() + cat.slice(1);
   };
 
+ 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.filterRow}>
@@ -74,14 +108,18 @@ export default function ConfesionesList() {
               styles.filterPill,
               {
                 borderColor: colors.border,
-                backgroundColor: selectedCategory === cat ? colors.primary : "transparent",
+                backgroundColor:
+                  selectedCategory === cat ? colors.primary : "transparent",
               },
             ]}
           >
             <Text
               style={[
                 styles.filterText,
-                { color: selectedCategory === cat ? colors.surface : colors.text },
+                {
+                  color:
+                    selectedCategory === cat ? colors.surface : colors.text,
+                },
               ]}
             >
               {displayName(cat)}
@@ -98,33 +136,62 @@ export default function ConfesionesList() {
           const liked = likedIds.includes(item.id);
           return (
             <Pressable
-              style={[styles.card, { borderColor: colors.border, backgroundColor: colors.surface }, cardShadow]}
-              onPress={() => router.push(`/(drawer)/(tabs)/confesion/${item.id}`)}
+              style={[
+                styles.card,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.surface,
+                },
+                cardShadow,
+              ]}
+              onPress={() =>
+                router.push(`/(drawer)/(tabs)/confesion/${item.id}`)
+              }
             >
               <View style={styles.rowBetween}>
                 <View style={{ flex: 1 }}>
                   <View style={styles.row}>
-                    <Ionicons name="eye-off-outline" size={14} color={colors.subtle} />
-                    <Text style={[styles.nexo, { color: colors.subtle }]}>{item.nexo}</Text>
+                    <Ionicons
+                      name="eye-off-outline"
+                      size={14}
+                      color={colors.subtle}
+                    />
+                    <Text style={[styles.nexo, { color: colors.subtle }]}>
+                      {item.nexo}
+                    </Text>
                   </View>
-                  <Text style={[styles.time, { color: colors.subtle }]}>{timeAgo(item.date)}</Text>
+                  <Text style={[styles.time, { color: colors.subtle }]}>
+                    {timeAgo(item.date)}
+                  </Text>
                 </View>
                 <View style={[styles.pill, { borderColor: catColor }]}>
                   <Text style={[styles.pillText, { color: catColor }]}>
-                    {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                    {item.category.charAt(0).toUpperCase() +
+                      item.category.slice(1)}
                   </Text>
                 </View>
               </View>
-              <Text style={[styles.content, { color: colors.text }]} numberOfLines={3}>
+
+              <Text
+                style={[styles.content, { color: colors.text }]}
+                numberOfLines={3}
+              >
                 {item.content}
               </Text>
+
               <View style={styles.rowBetween}>
                 <Text style={[styles.meta, { color: colors.subtle }]}>
                   {item.likes} {item.likes === 1 ? "like" : "likes"}
                 </Text>
                 <Pressable
                   hitSlop={8}
-                  style={[styles.likeBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                  style={[
+                    styles.likeBtn,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor: colors.surface,
+                    },
+                  ]}
                   onPress={() => toggleLike(item.id)}
                 >
                   <Ionicons
@@ -135,7 +202,9 @@ export default function ConfesionesList() {
                   <Text
                     style={[
                       styles.likeText,
-                      { color: liked ? likedColor : colors.tabInactive },
+                      {
+                        color: liked ? likedColor : colors.tabInactive,
+                      },
                     ]}
                   >
                     {liked ? "Te gusta" : "Me gusta"}
@@ -152,20 +221,50 @@ export default function ConfesionesList() {
 
 const styles = StyleSheet.create({
   list: { padding: 16, gap: 14 },
-  filterRow: { flexDirection: "row", justifyContent: "space-around", paddingVertical: 10 },
-  filterPill: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 },
+  filterRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 10,
+  },
+  filterPill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
   filterText: { fontSize: 13, fontWeight: "600" },
   card: { borderRadius: 16, borderWidth: 1, padding: 14, gap: 10 },
-  rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  rowBetween: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
   nexo: { fontSize: 12, fontWeight: "600" },
   time: { fontSize: 11 },
   content: { fontSize: 16 },
   meta: { fontSize: 12 },
-  likeBtn: { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 10 },
+  likeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
   likeText: { fontSize: 12, fontWeight: "700" },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8 },
   emptyText: { fontSize: 13 },
-  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
-  pillText: { fontSize: 11, fontWeight: "700", textTransform: "capitalize" },
+  pill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  pillText: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "capitalize",
+  },
 });

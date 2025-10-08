@@ -62,7 +62,7 @@ const submit = () => {
     nexo: "anónimo",
   };
   addPendiente(conf);
-  Keyboard.dismiss(); // 👈 esta línea hace que el teclado desaparezca
+  Keyboard.dismiss(); 
   setTexto("");
   setCategoria("amor");
   setCarrera("Administración de Empresas");
@@ -79,7 +79,7 @@ const submit = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      {/* 📝 Campo de texto */}
+    
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardShadow]}>
         <Text style={[styles.label, { color: colors.text }]}>Tu confesión</Text>
         <TextInput
@@ -97,7 +97,6 @@ const submit = () => {
         </View>
       </View>
 
-      {/* 🔖 Categoría */}
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.label, { color: colors.text }]}>Categoría</Text>
         <View style={styles.rowChips}>
@@ -120,7 +119,6 @@ const submit = () => {
         </View>
       </View>
 
-      {/* 🎓 Selector de carrera */}
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.label, { color: colors.text }]}>Carrera</Text>
         <View style={styles.rowChips}>
@@ -146,7 +144,6 @@ const submit = () => {
         </View>
       </View>
 
-      {/* 🚀 Botón enviar */}
       <Pressable
         onPress={submit}
         disabled={!valid}
