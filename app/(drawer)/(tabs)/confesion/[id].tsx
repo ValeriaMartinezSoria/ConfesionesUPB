@@ -41,7 +41,7 @@ export default function ConfesionDetail() {
     <ScrollView
       contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
     >
-      {/* Header con botón de volver */}
+      
       <View style={styles.headerBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
