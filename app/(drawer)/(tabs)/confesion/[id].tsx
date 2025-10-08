@@ -8,9 +8,8 @@ import { Ionicons } from "@expo/vector-icons";
 export default function ConfesionDetail() {
   const { id } = useLocalSearchParams();
   const { colors } = useThemeColors();
-  const confesion = useConfesionesStore((s) =>
-    s.aprobadas.find((c) => String(c.id) === String(id))
-  );
+  const aprobadas = useConfesionesStore((s) => s.aprobadas);
+  const confesion = aprobadas.find((c) => String(c.id) === String(id));
 
   if (!confesion) {
     return (
