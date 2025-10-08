@@ -2,6 +2,7 @@
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Confesion, Category } from "../data/seed";
+import type { Carrera } from "./useUserStore";
 
 type State = {
   pendientes: Confesion[];
@@ -16,6 +17,7 @@ type Actions = {
   toggleLike: (id: number) => void;
   seed: (aprobadas: Confesion[], pendientes: Confesion[]) => void;
   clearStorage: () => void;
+  getAprobadasSorted: (carrerasDeInteres: Carrera[]) => Confesion[];
 };
 
 export const useConfesionesStore = create<State & Actions>()(
@@ -72,6 +74,30 @@ export const useConfesionesStore = create<State & Actions>()(
       clearStorage: async () => {
         await AsyncStorage.removeItem("confesiones-storage");
         set({ pendientes: [], aprobadas: [], likedIds: [] });
+      },
+
+      getAprobadasSorted: (carrerasDeInteres: Carrera[]) => {
+        const { aprobadas } = get();
+
+        if (carrerasDeInteres.length === 0) {
+          return [...aprobadas].sort((a, b) => b.date - a.date);
+        }
+
+        const confesionesDeInteres: Confesion[] = [];
+        const confesionesOtras: Confesion[] = [];
+
+        aprobadas.forEach(confesion => {
+          if (carrerasDeInteres.includes(confesion.carrera as Carrera)) {
+            confesionesDeInteres.push(confesion);
+          } else {
+            confesionesOtras.push(confesion);
+          }
+        });
+
+        confesionesDeInteres.sort((a, b) => b.date - a.date);
+        confesionesOtras.sort((a, b) => b.date - a.date);
+
+        return [...confesionesDeInteres, ...confesionesOtras];
       },
     }),
     {
