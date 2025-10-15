@@ -44,6 +44,7 @@ export default function ConfesionesList() {
   const router = useRouter();
 
   const getAprobadasSorted = useConfesionesStore((s) => s.getAprobadasSorted);
+  const aprobadas = useConfesionesStore((s) => s.aprobadas);
   const toggleLike = useConfesionesStore((s) => s.toggleLike);
   const likedIds = useConfesionesStore((s) => s.likedIds);
   const hasHydrated = useConfesionesStore.persist.hasHydrated();
@@ -78,7 +79,7 @@ export default function ConfesionesList() {
     const sorted = getAprobadasSorted(carrerasDeInteres);
     if (selectedCategory === "all") return sorted;
     return sorted.filter((c) => c.category === selectedCategory);
-  }, [getAprobadasSorted, carrerasDeInteres, selectedCategory]);
+  }, [getAprobadasSorted, carrerasDeInteres, selectedCategory, aprobadas]);
 
   const catColor = isLight ? colors.primary : colors.secondary;
   const likedColor = isLight ? colors.primary : colors.secondary;
