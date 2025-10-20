@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { View, Text, StyleSheet, Switch, Pressable } from "react-native";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import { useUIStore, ThemePref } from "../../store/uiStore";
@@ -11,12 +11,14 @@ function Chip({
   onPress,
   color,
   border,
+  textColor,
 }: {
   label: string;
   selected: boolean;
   onPress: () => void;
   color: string;
   border: string;
+  textColor: string;
 }) {
   return (
     <Pressable
@@ -30,8 +32,9 @@ function Chip({
       ]}
       android_ripple={{ color: border }}
       accessibilityRole="button"
+      accessibilityState={{ selected }}
     >
-      <Text style={[styles.chipText, { color: selected ? "white" : border }]}>{label}</Text>
+      <Text style={[styles.chipText, { color: selected ? "white" : textColor }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -62,9 +65,9 @@ export default function Perfil() {
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
 
-      {/* Carreras de Interés */}
+      {/* Carreras de InterÃ©s */}
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Carreras de Interés</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Carreras de InterÃ©s</Text>
         <Text style={[styles.subtitle, { color: colors.subtle }]}>
           Selecciona las carreras que te interesan para ver sus confesiones primero
         </Text>
@@ -79,6 +82,7 @@ export default function Perfil() {
                 onPress={() => handleCarreraPress(carrera)}
                 color={colors.primary}
                 border={colors.border}
+                textColor={colors.text}
               />
             );
           })}
@@ -93,9 +97,9 @@ export default function Perfil() {
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Apariencia</Text>
         <View style={styles.rowChips}>
-          <Chip label="Claro" selected={theme === "light"} onPress={set("light")} color={colors.primary} border={colors.border} />
-          <Chip label="Oscuro" selected={theme === "dark"} onPress={set("dark")} color={colors.secondary} border={colors.border} />
-          <Chip label="Sistema" selected={theme === "system"} onPress={set("system")} color={colors.text} border={colors.border} />
+          <Chip label="Claro" selected={theme === "light"} onPress={set("light")} color={colors.primary} border={colors.border} textColor={colors.subtle} />
+          <Chip label="Oscuro" selected={theme === "dark"} onPress={set("dark")} color={colors.primary} border={colors.border} textColor={colors.subtle} />
+          <Chip label="Sistema" selected={theme === "system"} onPress={set("system")} color={colors.primary} border={colors.border} textColor={colors.subtle} />
         </View>
       </View>
 
@@ -110,7 +114,7 @@ export default function Perfil() {
           disabled={!isAdmin}
           android_ripple={{ color: colors.border }}
         >
-          <Text style={[styles.btnText, { color: isAdmin ? colors.primary : colors.subtle }]}>Abrir Moderación</Text>
+          <Text style={[styles.btnText, { color: isAdmin ? colors.primary : colors.subtle }]}>Abrir ModeraciÃ³n</Text>
         </Pressable>
       </View>
     </View>
@@ -132,3 +136,13 @@ const styles = StyleSheet.create({
   chip: { paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderRadius: 999 },
   chipText: { fontSize: 13, fontWeight: "700" },
 });
+
+
+
+
+
+
+
+
+
+

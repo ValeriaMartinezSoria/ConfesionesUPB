@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useLocalSearchParams, Redirect, useRouter, Stack } from "expo-router";
 import { useConfesionesStore } from "../../../store/useConfesionesStore";
@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function ConfesionDetail() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const { colors } = useThemeColors();
   const aprobadas = useConfesionesStore((s) => s.aprobadas);
   const confesion = aprobadas.find((c) => String(c.id) === String(id));
@@ -14,7 +15,7 @@ export default function ConfesionDetail() {
   if (!confesion) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.text }}>Confesión no encontrada.</Text>
+        <Text style={{ color: colors.text }}>Confesion no encontrada.</Text>
       </View>
     );
   }
@@ -28,6 +29,16 @@ export default function ConfesionDetail() {
     <ScrollView
       contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
     >
+      <View style={styles.backWrapper}>
+        <TouchableOpacity
+          style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={18} color={colors.primary} />
+          <Text style={[styles.backText, { color: colors.primary }]}>Atras</Text>
+        </TouchableOpacity>
+      </View>
       <View
         style={[
           styles.card,
@@ -42,7 +53,6 @@ export default function ConfesionDetail() {
 
         <Text style={[styles.content, { color: colors.text }]}>{confesion.content}</Text>
 
-      
         <View style={styles.infoBox}>
           <Ionicons name="school-outline" size={18} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.text }]}>
@@ -50,7 +60,6 @@ export default function ConfesionDetail() {
           </Text>
         </View>
 
-      
         <View style={styles.infoBox}>
           <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.text }]}>
@@ -63,7 +72,6 @@ export default function ConfesionDetail() {
           <Text style={[styles.infoText, { color: colors.text }]}>
             {confesion.likes} {confesion.likes === 1 ? "like" : "likes"}
           </Text>
-          
         </View>
       </View>
     </ScrollView>
@@ -72,6 +80,18 @@ export default function ConfesionDetail() {
 
 const styles = StyleSheet.create({
   container: { flexGrow: 1, padding: 16 },
+  backWrapper: { width: "100%", marginBottom: 12 },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    gap: 6,
+  },
+  backText: { fontSize: 14, fontWeight: "600" },
   card: { borderWidth: 1, borderRadius: 16, padding: 16, gap: 10 },
   header: { flexDirection: "row", alignItems: "center", gap: 6 },
   nexo: { fontSize: 13, fontWeight: "600" },
