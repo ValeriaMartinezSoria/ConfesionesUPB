@@ -67,7 +67,7 @@ export default function Perfil() {
 
       {/* Carreras de InterÃ©s */}
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Carreras de InterÃ©s</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Carreras de Intereces</Text>
         <Text style={[styles.subtitle, { color: colors.subtle }]}>
           Selecciona las carreras que te interesan para ver sus confesiones primero
         </Text>
@@ -114,7 +114,7 @@ export default function Perfil() {
           disabled={!isAdmin}
           android_ripple={{ color: colors.border }}
         >
-          <Text style={[styles.btnText, { color: isAdmin ? colors.primary : colors.subtle }]}>Abrir ModeraciÃ³n</Text>
+          <Text style={[styles.btnText, { color: isAdmin ? colors.primary : colors.subtle }]}>Abrir Moderación</Text>
         </Pressable>
       </View>
     </View>
