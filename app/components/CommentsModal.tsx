@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    height: "50%", // ✅ como Instagram
+    height: "50%", 
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 8,

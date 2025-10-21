@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 interface ImageModalProps {
   visible: boolean;
-  image: any; // puede ser require o { uri: string }
+  image: any; 
   onClose: () => void;
 }
 

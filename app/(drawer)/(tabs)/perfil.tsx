@@ -65,7 +65,7 @@ export default function Perfil() {
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
 
-      {/* Carreras de InterÃ©s */}
+      
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Carreras de Intereces</Text>
         <Text style={[styles.subtitle, { color: colors.subtle }]}>

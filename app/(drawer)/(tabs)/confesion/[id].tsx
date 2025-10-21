@@ -11,7 +11,7 @@ import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useConfesionesStore } from "../../../store/useConfesionesStore";
 import { useThemeColors } from "../../../hooks/useThemeColors";
-import CommentsModal from "../../../components/CommentsModal"; // ✅ import corregido (sin llaves)
+import CommentsModal from "../../../components/CommentsModal"; 
 
 export default function ConfesionDetail() {
   const { id } = useLocalSearchParams();
@@ -23,7 +23,7 @@ export default function ConfesionDetail() {
     s.aprobadas.find((c) => c.id === Number(id))
   );
 
-  // Estado de comentarios
+  
   const [comments, setComments] = useState<string[]>([]);
   const [newComment, setNewComment] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
@@ -35,7 +35,7 @@ export default function ConfesionDetail() {
     }
   };
 
-  // Header con flecha y título
+  
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "ConfesionesUPB",
@@ -89,7 +89,7 @@ export default function ConfesionDetail() {
           </Text>
         </View>
 
-        {/* Sección de comentarios */}
+       
         <View style={[styles.commentSection, { borderColor: colors.border }]}>
           <Pressable onPress={() => setModalVisible(true)}>
             <Text style={{ color: colors.primary, fontWeight: "600" }}>
@@ -99,7 +99,7 @@ export default function ConfesionDetail() {
         </View>
       </ScrollView>
 
-      {/* Modal profesional de comentarios */}
+   
       <CommentsModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

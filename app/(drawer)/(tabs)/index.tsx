@@ -60,7 +60,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
 
   const carrerasDeInteres = useUserStore((s) => s.carrerasDeInteres);
 
-  // 🧠 NUEVO: Estados y store de comentarios
+  
   const [openComments, setOpenComments] = useState(false);
   const [selectedConfessionId, setSelectedConfessionId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState("");
@@ -133,7 +133,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Mostrar indicador de filtrado por interés */}
+      
       {carrerasDeInteres.length > 0 && (
         <View
           style={[
@@ -286,14 +286,14 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
                 </Text>
               </View>
 
-              {/* Botones de interacción */}
+        
               <View style={styles.rowBetween}>
                 <Text style={[styles.meta, { color: colors.subtle }]}>
                   {item.likes} {item.likes === 1 ? "like" : "likes"}
                 </Text>
 
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  {/* ❤️ Me gusta */}
+                  
                   <Pressable
                     hitSlop={8}
                     style={[
@@ -322,7 +322,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
                     </Text>
                   </Pressable>
 
-                  {/* 💬 Comentarios */}
+                  
                   <Pressable
                     hitSlop={8}
                     style={[
@@ -359,7 +359,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
         }}
       />
 
-      {/* 💬 Modal de comentarios */}
+    
       <CommentsModal
         visible={openComments}
         onClose={() => setOpenComments(false)}
