@@ -11,11 +11,14 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useConfesionesStore } from "../../store/useConfesionesStore";
+import { useCommentsStore } from "../../store/useCommentsStore";
 import { useUserStore } from "../../store/useUserStore";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import type { Confesion, Category } from "../../data/seed";
 import { Image } from "react-native"; 
 import CommentsModal from "../../components/CommentsModal";
+import ImageModal from "../../components/ImageModal"; 
+
 
 
 function timeAgo(ts: number) {
@@ -52,18 +55,28 @@ export default function ConfesionesList() {
   const hasHydrated = useConfesionesStore.persist.hasHydrated();
 
   
+const [imageModalVisible, setImageModalVisible] = useState(false);
+const [selectedImage, setSelectedImage] = useState<any>(null);
+
   const carrerasDeInteres = useUserStore((s) => s.carrerasDeInteres);
 
-const [openComments, setOpenComments] = useState(false);
-const [comments, setComments] = useState<string[]>([]);
-const [newComment, setNewComment] = useState("");
+  // 🧠 NUEVO: Estados y store de comentarios
+  const [openComments, setOpenComments] = useState(false);
+  const [selectedConfessionId, setSelectedConfessionId] = useState<number | null>(null);
+  const [newComment, setNewComment] = useState("");
 
-const addComment = () => {
-  if (newComment.trim()) {
-    setComments([...comments, newComment.trim()]);
-    setNewComment("");
-  }
-};
+  const { commentsByConfession, addComment } = useCommentsStore();
+
+  const currentComments = selectedConfessionId
+    ? commentsByConfession[selectedConfessionId] || []
+    : [];
+
+  const handleAddComment = () => {
+    if (selectedConfessionId && newComment.trim()) {
+      addComment(selectedConfessionId, newComment.trim());
+      setNewComment("");
+    }
+  };
 
   if (!hasHydrated) {
     return (
@@ -83,9 +96,14 @@ const addComment = () => {
     );
   }
 
-
-  const [selectedCategory, setSelectedCategory] = useState<"all" | Category>("all");
-  const categories: Array<"all" | Category> = ["all", "amor", "academico", "random"];
+  const [selectedCategory, setSelectedCategory] =
+    useState<"all" | Category>("all");
+  const categories: Array<"all" | Category> = [
+    "all",
+    "amor",
+    "academico",
+    "random",
+  ];
 
   const data = useMemo<Confesion[]>(() => {
     const sorted = getAprobadasSorted(carrerasDeInteres);
@@ -95,7 +113,6 @@ const addComment = () => {
 
   const catColor = isLight ? colors.primary : colors.secondary;
   const likedColor = isLight ? colors.primary : colors.secondary;
-
 
   if (!data.length) {
     return (
@@ -114,227 +131,251 @@ const addComment = () => {
     return cat.charAt(0).toUpperCase() + cat.slice(1);
   };
 
-
   return (
-  <View style={{ flex: 1, backgroundColor: colors.background }}>
-    {/* Mostrar indicador de filtrado por interés */}
-    {carrerasDeInteres.length > 0 && (
-      <View
-        style={[
-          styles.interestBanner,
-          {
-            backgroundColor: colors.primary + "15",
-            borderColor: colors.primary,
-          },
-        ]}
-      >
-        <Ionicons name="star" size={16} color={colors.primary} />
-        <Text style={[styles.interestText, { color: colors.primary }]}>
-          Mostrando primero: {carrerasDeInteres.slice(0, 2).join(", ")}
-          {carrerasDeInteres.length > 2
-            ? ` y ${carrerasDeInteres.length - 2} más`
-            : ""}
-        </Text>
-      </View>
-    )}
-
-    <View style={styles.filterRow}>
-      {categories.map((cat) => (
-        <Pressable
-          key={cat}
-          onPress={() => setSelectedCategory(cat)}
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* Mostrar indicador de filtrado por interés */}
+      {carrerasDeInteres.length > 0 && (
+        <View
           style={[
-            styles.filterPill,
+            styles.interestBanner,
             {
-              borderColor: colors.border,
-              backgroundColor:
-                selectedCategory === cat ? colors.primary : "transparent",
+              backgroundColor: colors.primary + "15",
+              borderColor: colors.primary,
             },
           ]}
         >
-          <Text
-            style={[
-              styles.filterText,
-              {
-                color:
-                  selectedCategory === cat ? colors.surface : colors.text,
-              },
-            ]}
-          >
-            {displayName(cat)}
+          <Ionicons name="star" size={16} color={colors.primary} />
+          <Text style={[styles.interestText, { color: colors.primary }]}>
+            Mostrando primero: {carrerasDeInteres.slice(0, 2).join(", ")}
+            {carrerasDeInteres.length > 2
+              ? ` y ${carrerasDeInteres.length - 2} más`
+              : ""}
           </Text>
-        </Pressable>
-      ))}
-    </View>
+        </View>
+      )}
 
-    <FlatList
-      data={data}
-      contentContainerStyle={styles.list}
-      keyExtractor={(item) => String(item.id)}
-      renderItem={({ item }) => {
-        const liked = likedIds.includes(item.id);
-        const isFromInterest = carrerasDeInteres.includes(
-          item.carrera as any
-        );
-
-        return (
+      <View style={styles.filterRow}>
+        {categories.map((cat) => (
           <Pressable
+            key={cat}
+            onPress={() => setSelectedCategory(cat)}
             style={[
-              styles.card,
+              styles.filterPill,
               {
-                borderColor: isFromInterest ? colors.primary : colors.border,
-                backgroundColor: colors.surface,
-                borderWidth: isFromInterest ? 2 : 1,
+                borderColor: colors.border,
+                backgroundColor:
+                  selectedCategory === cat ? colors.primary : "transparent",
               },
-              cardShadow,
             ]}
-            onPress={() =>
-              router.push(`/(drawer)/(tabs)/confesion/${item.id}`)
-            }
           >
-            <View style={styles.rowBetween}>
-              <View style={{ flex: 1 }}>
-                <View style={styles.row}>
-                  <Ionicons
-                    name="eye-off-outline"
-                    size={14}
-                    color={colors.subtle}
-                  />
-                  <Text style={[styles.nexo, { color: colors.subtle }]}>
-                    {item.nexo}
-                  </Text>
-                  {isFromInterest && (
-                    <Ionicons name="star" size={12} color={colors.primary} />
-                  )}
-                </View>
-                <Text style={[styles.time, { color: colors.subtle }]}>
-                  {timeAgo(item.date)}
-                </Text>
-              </View>
-              <View style={[styles.pill, { borderColor: catColor }]}>
-                <Text style={[styles.pillText, { color: catColor }]}>
-                  {item.category.charAt(0).toUpperCase() +
-                    item.category.slice(1)}
-                </Text>
-              </View>
-            </View>
-
             <Text
-              style={[styles.content, { color: colors.text }]}
-              numberOfLines={3}
+              style={[
+                styles.filterText,
+                {
+                  color:
+                    selectedCategory === cat
+                      ? colors.surface
+                      : colors.text,
+                },
+              ]}
             >
-              {item.content}
+              {displayName(cat)}
             </Text>
+          </Pressable>
+        ))}
+      </View>
 
-            {item.image && (
-              <Image
-                source={item.image}
-                style={{
-                  width: "100%",
-                  height: 200,
-                  borderRadius: 12,
-                  marginTop: 8,
-                }}
-                resizeMode="cover"
-              />
-            )}
+      <FlatList
+        data={data}
+        contentContainerStyle={styles.list}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => {
+          const liked = likedIds.includes(item.id);
+          const isFromInterest = carrerasDeInteres.includes(
+            item.carrera as any
+          );
 
-            <View style={styles.rowBetween}>
+          return (
+            <Pressable
+              style={[
+                styles.card,
+                {
+                  borderColor: isFromInterest
+                    ? colors.primary
+                    : colors.border,
+                  backgroundColor: colors.surface,
+                  borderWidth: isFromInterest ? 2 : 1,
+                },
+                cardShadow,
+              ]}
+              onPress={() =>
+                router.push(`/(drawer)/(tabs)/confesion/${item.id}`)
+              }
+            >
+              <View style={styles.rowBetween}>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="eye-off-outline"
+                      size={14}
+                      color={colors.subtle}
+                    />
+                    <Text style={[styles.nexo, { color: colors.subtle }]}>
+                      {item.nexo}
+                    </Text>
+                    {isFromInterest && (
+                      <Ionicons
+                        name="star"
+                        size={12}
+                        color={colors.primary}
+                      />
+                    )}
+                  </View>
+                  <Text style={[styles.time, { color: colors.subtle }]}>
+                    {timeAgo(item.date)}
+                  </Text>
+                </View>
+                <View style={[styles.pill, { borderColor: catColor }]}>
+                  <Text style={[styles.pillText, { color: catColor }]}>
+                    {item.category.charAt(0).toUpperCase() +
+                      item.category.slice(1)}
+                  </Text>
+                </View>
+              </View>
+
               <Text
-                style={[
-                  styles.carrera,
-                  {
-                    color: isFromInterest
-                      ? colors.primary
-                      : colors.subtle,
-                  },
-                ]}
+                style={[styles.content, { color: colors.text }]}
+                numberOfLines={3}
               >
-                📚 {item.carrera}
-              </Text>
-            </View>
-
-            {/* Botones de interacción */}
-            <View style={styles.rowBetween}>
-              <Text style={[styles.meta, { color: colors.subtle }]}>
-                {item.likes} {item.likes === 1 ? "like" : "likes"}
+                {item.content}
               </Text>
 
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                {/* ❤️ Me gusta */}
-                <Pressable
-                  hitSlop={8}
+              {item.image && (
+  <Pressable
+    onPress={() => {
+       if (item.image) {
+    setSelectedImage(item.image);
+    setImageModalVisible(true);
+  }
+    }}
+  >
+    <Image
+      source={item.image}
+      style={{
+        width: "100%",
+        height: 200,
+        borderRadius: 12,
+        marginTop: 8,
+      }}
+      resizeMode="cover"
+    />
+  </Pressable>
+)}
+              <View style={styles.rowBetween}>
+                <Text
                   style={[
-                    styles.likeBtn,
+                    styles.carrera,
                     {
-                      borderColor: colors.border,
-                      backgroundColor: colors.surface,
+                      color: isFromInterest
+                        ? colors.primary
+                        : colors.subtle,
                     },
                   ]}
-                  onPress={() => toggleLike(item.id)}
                 >
-                  <Ionicons
-                    name={liked ? "heart" : "heart-outline"}
-                    size={18}
-                    color={liked ? likedColor : colors.tabInactive}
-                  />
-                  <Text
+                  📚 {item.carrera}
+                </Text>
+              </View>
+
+              {/* Botones de interacción */}
+              <View style={styles.rowBetween}>
+                <Text style={[styles.meta, { color: colors.subtle }]}>
+                  {item.likes} {item.likes === 1 ? "like" : "likes"}
+                </Text>
+
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {/* ❤️ Me gusta */}
+                  <Pressable
+                    hitSlop={8}
                     style={[
-                      styles.likeText,
+                      styles.likeBtn,
                       {
-                        color: liked ? likedColor : colors.tabInactive,
+                        borderColor: colors.border,
+                        backgroundColor: colors.surface,
                       },
                     ]}
+                    onPress={() => toggleLike(item.id)}
                   >
-                    {liked ? "Te gusta" : "Me gusta"}
-                  </Text>
-                </Pressable>
+                    <Ionicons
+                      name={liked ? "heart" : "heart-outline"}
+                      size={18}
+                      color={liked ? likedColor : colors.tabInactive}
+                    />
+                    <Text
+                      style={[
+                        styles.likeText,
+                        {
+                          color: liked ? likedColor : colors.tabInactive,
+                        },
+                      ]}
+                    >
+                      {liked ? "Te gusta" : "Me gusta"}
+                    </Text>
+                  </Pressable>
 
-                {/* 💬 Comentarios */}
-                <Pressable
-                  hitSlop={8}
-                  style={[
-                    styles.likeBtn,
-                    {
-                      marginLeft: 10,
-                      borderColor: colors.border,
-                      backgroundColor: colors.surface,
-                    },
-                  ]}
-                  onPress={() => setOpenComments(true)}
-                >
-                  <Ionicons
-                    name="chatbubble-outline"
-                    size={18}
-                    color={colors.tabInactive}
-                  />
-                  <Text
+                  {/* 💬 Comentarios */}
+                  <Pressable
+                    hitSlop={8}
                     style={[
-                      styles.likeText,
-                      { color: colors.tabInactive },
+                      styles.likeBtn,
+                      {
+                        marginLeft: 10,
+                        borderColor: colors.border,
+                        backgroundColor: colors.surface,
+                      },
                     ]}
+                    onPress={() => {
+                      setSelectedConfessionId(item.id);
+                      setOpenComments(true);
+                    }}
                   >
-                    Comentar
-                  </Text>
-                </Pressable>
+                    <Ionicons
+                      name="chatbubble-outline"
+                      size={18}
+                      color={colors.tabInactive}
+                    />
+                    <Text
+                      style={[
+                        styles.likeText,
+                        { color: colors.tabInactive },
+                      ]}
+                    >
+                      Comentar
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
-            </View>
-          </Pressable>
-        );
-      }}
-    />
+            </Pressable>
+          );
+        }}
+      />
 
-    {/* 💬 Modal de comentarios */}
-    <CommentsModal
-      visible={openComments}
-      onClose={() => setOpenComments(false)}
-      comments={comments}
-      newComment={newComment}
-      setNewComment={setNewComment}
-      addComment={addComment}
-    />
-  </View>
-);
+      {/* 💬 Modal de comentarios */}
+      <CommentsModal
+        visible={openComments}
+        onClose={() => setOpenComments(false)}
+        comments={currentComments}
+        newComment={newComment}
+        setNewComment={setNewComment}
+        addComment={handleAddComment}
+      />
+      <ImageModal
+  visible={imageModalVisible}
+  image={selectedImage}
+  onClose={() => setImageModalVisible(false)}
+/>
+
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
