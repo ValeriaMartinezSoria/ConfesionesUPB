@@ -1,4 +1,4 @@
-﻿import React, { useState, useLayoutEffect } from "react";
+﻿import React, { useLayoutEffect, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,8 +10,9 @@ import {
 import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useConfesionesStore } from "../../../store/useConfesionesStore";
+import { useCommentsStore } from "../../../store/useCommentsStore";
 import { useThemeColors } from "../../../hooks/useThemeColors";
-import CommentsModal from "../../../components/CommentsModal"; 
+import CommentsModal from "../../../components/CommentsModal";
 
 export default function ConfesionDetail() {
   const { id } = useLocalSearchParams();
@@ -19,28 +20,19 @@ export default function ConfesionDetail() {
   const navigation = useNavigation();
   const { colors } = useThemeColors();
 
+  const confesionId = Number(id);
   const confesion = useConfesionesStore((s) =>
-    s.aprobadas.find((c) => c.id === Number(id))
+    s.aprobadas.find((c) => c.id === confesionId)
   );
 
-  
-  const [comments, setComments] = useState<string[]>([]);
+  const { commentsByConfession, addComment, subscribeToComments } =
+    useCommentsStore();
+
+  const comments = commentsByConfession[confesionId] || [];
+
   const [newComment, setNewComment] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const addComment = (payload: { user: string; content: string; image?: string }) => {
-    if (payload.content.trim()) {
-      const commentText = payload.content.trim();
-      if (payload.image) {
-        setComments((prev) => [...prev, `${commentText} [imagen]`]);
-      } else {
-        setComments((prev) => [...prev, commentText]);
-      }
-      setNewComment("");
-    }
-  };
-
-  
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "ConfesionesUPB",
@@ -55,6 +47,18 @@ export default function ConfesionDetail() {
       ),
     });
   }, [navigation, colors.text]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToComments(confesionId);
+    return () => unsubscribe && unsubscribe();
+  }, [confesionId]);
+
+  const handleAddComment = (image?: string) => {
+    if (newComment.trim() || image) {
+      addComment(confesionId, newComment.trim(), image);
+      setNewComment("");
+    }
+  };
 
   if (!confesion) {
     return (
@@ -98,20 +102,19 @@ export default function ConfesionDetail() {
         <View style={[styles.commentSection, { borderColor: colors.border }]}>
           <Pressable onPress={() => setModalVisible(true)}>
             <Text style={{ color: colors.primary, fontWeight: "600" }}>
-              Ver comentarios
+              Ver comentarios ({comments.length})
             </Text>
           </Pressable>
         </View>
       </ScrollView>
 
-   
       <CommentsModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         comments={comments}
         newComment={newComment}
         setNewComment={setNewComment}
-        addComment={addComment}
+        addComment={handleAddComment}
       />
     </View>
   );

@@ -43,13 +43,13 @@ export default function Moderacion() {
                 style={[styles.btn, { borderColor: colors.border }]}
                 onPress={() => approve(item.id)}
               >
-                <Text style={[styles.btnText, { color: colors.primary }]}>Aprobar</Text>
+                <Text style={[styles.btnText, { color: colors.success }]}>Aprobar</Text>
               </Pressable>
               <Pressable
                 style={[styles.btn, { borderColor: colors.border }]}
                 onPress={() => reject(item.id)}
               >
-                <Text style={[styles.btnText, { color: "#E5484D" }]}>Rechazar</Text>
+                <Text style={[styles.btnText, { color: colors.danger }]}>Rechazar</Text>
               </Pressable>
             </View>
           </Pressable>
@@ -84,7 +84,7 @@ export default function Moderacion() {
                       setSelected(null);
                     }}
                   >
-                    <Text style={[styles.btnText, { color: colors.primary }]}>
+                    <Text style={[styles.btnText, { color: colors.success }]}>
                       Aprobar
                     </Text>
                   </Pressable>
@@ -95,7 +95,7 @@ export default function Moderacion() {
                       setSelected(null);
                     }}
                   >
-                    <Text style={[styles.btnText, { color: "#E5484D" }]}>
+                    <Text style={[styles.btnText, { color: colors.danger }]}>
                       Rechazar
                     </Text>
                   </Pressable>

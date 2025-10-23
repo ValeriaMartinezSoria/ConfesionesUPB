@@ -1,31 +1,65 @@
 import { create } from "zustand";
-import type { Comment } from "../types/confesiones";
+import { collection, addDoc, onSnapshot, query, where, orderBy } from "firebase/firestore";
+import { db } from "../data/firebase";
 
-interface CommentsState {
+type Comment = {
+  id: string;
+  text: string;
+  createdAt: number;
+  confessionId: number;
+  image?: string;
+  likes?: number;
+};
+
+type CommentsState = {
   commentsByConfession: Record<number, Comment[]>;
-  addComment: (confessionId: number, comment: Omit<Comment, "id" | "date"> & { image?: string }) => void;
-}
+  loading: boolean;
+  addComment: (confessionId: number, text: string, image?: string) => Promise<void>;
+  subscribeToComments: (confessionId: number) => () => void;
+};
 
-let NEXT_COMMENT_ID = 1;
-
-export const useCommentsStore = create<CommentsState>((set) => ({
+export const useCommentsStore = create<CommentsState>((set, get) => ({
   commentsByConfession: {},
+  loading: false,
 
-  addComment: (confessionId, comment) =>
-    set((state) => {
-      const existing = state.commentsByConfession[confessionId] || [];
-      const newComment: Comment = {
-        id: NEXT_COMMENT_ID++,
-        user: comment.user,
-        content: comment.content,
-        date: Date.now(),
-        image: comment.image,
+  addComment: async (confessionId, text, image) => {
+    if (!text.trim() && !image) return;
+    try {
+      const commentData: any = {
+        text: text.trim(),
+        confessionId,
+        createdAt: Date.now(),
+        likes: 0,
       };
-      return {
+      
+      if (image) {
+        commentData.image = image;
+      }
+      
+      await addDoc(collection(db, "comments"), commentData);
+    } catch (err) {
+      console.error("Error al agregar comentario:", err);
+    }
+  },
+
+  subscribeToComments: (confessionId) => {
+    const q = query(
+      collection(db, "comments"),
+      where("confessionId", "==", confessionId),
+      orderBy("createdAt", "asc")
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const comments = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Comment, "id">),
+      }));
+      set((state) => ({
         commentsByConfession: {
           ...state.commentsByConfession,
-          [confessionId]: [...existing, newComment],
+          [confessionId]: comments,
         },
-      };
-    }),
+      }));
+    });
+  },
 }));

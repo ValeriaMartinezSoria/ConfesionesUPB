@@ -65,15 +65,22 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
   const [selectedConfessionId, setSelectedConfessionId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState("");
 
-  const { commentsByConfession, addComment } = useCommentsStore();
+  const { commentsByConfession, addComment, subscribeToComments } = useCommentsStore();
 
   const currentComments = selectedConfessionId
     ? commentsByConfession[selectedConfessionId] || []
     : [];
 
-  const handleAddComment = (payload: { user: string; content: string; image?: string }) => {
-    if (selectedConfessionId && payload.content.trim()) {
-      addComment(selectedConfessionId, { user: payload.user, content: payload.content, image: payload.image });
+  React.useEffect(() => {
+    if (selectedConfessionId) {
+      const unsubscribe = subscribeToComments(selectedConfessionId);
+      return () => unsubscribe && unsubscribe();
+    }
+  }, [selectedConfessionId]);
+
+  const handleAddComment = (image?: string) => {
+    if (selectedConfessionId && (newComment.trim() || image)) {
+      addComment(selectedConfessionId, newComment.trim(), image);
       setNewComment("");
     }
   };
