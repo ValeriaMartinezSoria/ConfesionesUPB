@@ -4,67 +4,81 @@ import {
   View,
   Text,
   TextInput,
-  Pressable,
   FlatList,
+  Pressable,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useThemeColors } from "../hooks/useThemeColors";
 
-interface CommentsModalProps {
+type Comment = {
+  id: string;
+  text: string;
+  createdAt: number;
+  confessionId: number;
+};
+
+type Props = {
   visible: boolean;
   onClose: () => void;
-  comments: string[];
+  comments: Comment[];
   newComment: string;
   setNewComment: (text: string) => void;
   addComment: () => void;
-}
+};
 
-const CommentsModal: React.FC<CommentsModalProps> = ({
+export default function CommentsModal({
   visible,
   onClose,
   comments,
   newComment,
   setNewComment,
   addComment,
-}) => {
+}: Props) {
+  const { colors } = useThemeColors();
+
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.container}
+        style={styles.overlay}
       >
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
+          {/* 🔹 Encabezado */}
           <View style={styles.header}>
-            <Text style={styles.title}>Comentarios</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Comentarios</Text>
             <Pressable onPress={onClose}>
               <Text style={styles.close}>✕</Text>
             </Pressable>
           </View>
 
+          {/* 🔹 Lista de comentarios */}
           <FlatList
-            data={comments || []}
-            keyExtractor={(item, index) => index.toString()}
+            data={comments}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ paddingVertical: 8 }}
+            ListEmptyComponent={
+              <Text style={[styles.empty, { color: colors.subtle }]}>
+                Aún no hay comentarios.
+              </Text>
+            }
             renderItem={({ item }) => (
               <View style={styles.commentItem}>
                 <Text style={styles.user}>Anónimo</Text>
-                <Text style={styles.commentText}>{item}</Text>
+                <Text style={[styles.commentText, { color: colors.text }]}>
+                  {item.text}
+                </Text>
                 <Text style={styles.time}>Hace un momento · ❤️ 0</Text>
               </View>
             )}
-            ListEmptyComponent={
-              <Text style={styles.noComments}>Aún no hay comentarios.</Text>
-            }
           />
 
+          {/* 🔹 Campo de nuevo comentario */}
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Escribe un comentario..."
               placeholderTextColor="#aaa"
               value={newComment}
@@ -78,22 +92,20 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       </KeyboardAvoidingView>
     </Modal>
   );
-};
-
-export default CommentsModal;
+}
 
 const styles = StyleSheet.create({
-  container: {
+  overlay: {
     flex: 1,
     justifyContent: "flex-end",
     backgroundColor: "rgba(0,0,0,0.3)",
   },
-  modalContent: {
+  modalContainer: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    height: "50%", 
+    height: "55%",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -126,7 +138,6 @@ const styles = StyleSheet.create({
   },
   commentText: {
     fontSize: 14,
-    color: "#333",
     marginTop: 2,
   },
   time: {
@@ -134,9 +145,8 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 4,
   },
-  noComments: {
+  empty: {
     textAlign: "center",
-    color: "#888",
     marginTop: 20,
   },
   inputContainer: {
