@@ -1,7 +1,8 @@
-﻿import React from "react";
+import React from "react";
 import { View, Text, StyleSheet, Platform, ScrollView } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useConfesionesStore } from "../../../store/useConfesionesStore";
+import { useCommentsStore } from "../../../store/useCommentsStore";
 import { useThemeColors } from "../../../hooks/useThemeColors";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -24,6 +25,8 @@ type ModeratedFields = {
 
 export default function ConfesionDetail() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
+  const navigation = useNavigation();
   const { colors } = useThemeColors();
   const aprobadas = useConfesionesStore((s) => s.aprobadas);
   const confesion = aprobadas.find((c) => String(c.id) === String(id)) as (typeof aprobadas[number] & ModeratedFields) | undefined;
@@ -55,20 +58,13 @@ export default function ConfesionDetail() {
     value ? new Date(value).toLocaleString() : undefined;
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
-    >
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-          cardShadow,
-        ]}
-      >
-        <View style={styles.header}>
-          <Ionicons name="eye-off-outline" size={16} color={colors.subtle} />
-          <Text style={[styles.nexo, { color: colors.subtle }]}>{confesion.nexo}</Text>
-        </View>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.category, { color: colors.primary }]}>
+            {confesion.category.charAt(0).toUpperCase() +
+              confesion.category.slice(1)}
+          </Text>
 
         <Text style={[styles.content, { color: colors.text }]}>{confesion.content}</Text>
 
