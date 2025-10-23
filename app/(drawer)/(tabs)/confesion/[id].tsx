@@ -48,7 +48,7 @@ export default function ConfesionDetail() {
     });
   }, [navigation, colors.text]);
 
-  // 🟢 Suscribirse en tiempo real a los comentarios desde Firestore
+ 
   useEffect(() => {
     const unsubscribe = subscribeToComments(confesionId);
     return () => unsubscribe && unsubscribe();
@@ -99,7 +99,7 @@ export default function ConfesionDetail() {
           </Text>
         </View>
 
-        {/* 🔹 Botón para abrir comentarios */}
+  
         <View style={[styles.commentSection, { borderColor: colors.border }]}>
           <Pressable onPress={() => setModalVisible(true)}>
             <Text style={{ color: colors.primary, fontWeight: "600" }}>
@@ -109,7 +109,7 @@ export default function ConfesionDetail() {
         </View>
       </ScrollView>
 
-      {/* 🔹 Modal de comentarios */}
+
       <CommentsModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
