@@ -1,5 +1,5 @@
 ﻿import React from "react";
-import { View, Text, StyleSheet, Switch, Pressable } from "react-native";
+import { View, Text, StyleSheet, Switch, Pressable, Alert } from "react-native";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import { useUIStore, ThemePref } from "../../store/uiStore";
 import { useUserStore, CARRERAS_DISPONIBLES } from "../../store/useUserStore";
@@ -27,14 +27,16 @@ function Chip({
         styles.chip,
         {
           borderColor: selected ? color : border,
-          backgroundColor: selected ? color : "transparent"
+          backgroundColor: selected ? color : "transparent",
         },
       ]}
       android_ripple={{ color: border }}
       accessibilityRole="button"
       accessibilityState={{ selected }}
     >
-      <Text style={[styles.chipText, { color: selected ? "white" : textColor }]}>{label}</Text>
+      <Text style={[styles.chipText, { color: selected ? "white" : textColor }]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -47,10 +49,10 @@ export default function Perfil() {
   const theme = useUIStore((s) => s.theme);
   const setTheme = useUIStore((s) => s.setTheme);
 
-  
   const carrerasDeInteres = useUserStore((s) => s.carrerasDeInteres);
   const addCarreraDeInteres = useUserStore((s) => s.addCarreraDeInteres);
   const removeCarreraDeInteres = useUserStore((s) => s.removeCarreraDeInteres);
+  const logout = useUserStore((s) => s.logout);
 
   const set = (t: ThemePref) => () => setTheme(t);
 
@@ -62,14 +64,31 @@ export default function Perfil() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout(); 
+      Alert.alert("Sesión cerrada", "Tu sesión se ha cerrado correctamente.");
+      router.replace("/auth");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      Alert.alert("Error", "No se pudo cerrar sesión. Intenta nuevamente.");
+    }
+  };
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-
-      
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Carreras de Intereces</Text>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Carreras de Interés
+        </Text>
         <Text style={[styles.subtitle, { color: colors.subtle }]}>
-          Selecciona las carreras que te interesan para ver sus confesiones primero
+          Selecciona las carreras que te interesan para ver sus confesiones
+          primero
         </Text>
         <View style={styles.carrerasGrid}>
           {CARRERAS_DISPONIBLES.map((carrera) => {
@@ -89,21 +108,57 @@ export default function Perfil() {
         </View>
         {carrerasDeInteres.length > 0 && (
           <Text style={[styles.selectedCount, { color: colors.primary }]}>
-            {carrerasDeInteres.length} carrera{carrerasDeInteres.length !== 1 ? 's' : ''} seleccionada{carrerasDeInteres.length !== 1 ? 's' : ''}
+            {carrerasDeInteres.length} carrera
+            {carrerasDeInteres.length !== 1 ? "s" : ""} seleccionada
+            {carrerasDeInteres.length !== 1 ? "s" : ""}
           </Text>
         )}
       </View>
 
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Apariencia</Text>
+      {/* Apariencia */}
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Apariencia
+        </Text>
         <View style={styles.rowChips}>
-          <Chip label="Claro" selected={theme === "light"} onPress={set("light")} color={colors.primary} border={colors.border} textColor={colors.subtle} />
-          <Chip label="Oscuro" selected={theme === "dark"} onPress={set("dark")} color={colors.primary} border={colors.border} textColor={colors.subtle} />
-          <Chip label="Sistema" selected={theme === "system"} onPress={set("system")} color={colors.primary} border={colors.border} textColor={colors.subtle} />
+          <Chip
+            label="Claro"
+            selected={theme === "light"}
+            onPress={set("light")}
+            color={colors.primary}
+            border={colors.border}
+            textColor={colors.subtle}
+          />
+          <Chip
+            label="Oscuro"
+            selected={theme === "dark"}
+            onPress={set("dark")}
+            color={colors.primary}
+            border={colors.border}
+            textColor={colors.subtle}
+          />
+          <Chip
+            label="Sistema"
+            selected={theme === "system"}
+            onPress={set("system")}
+            color={colors.primary}
+            border={colors.border}
+            textColor={colors.subtle}
+          />
         </View>
       </View>
 
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+      >
         <View style={styles.row}>
           <Text style={[styles.label, { color: colors.text }]}>Modo admin</Text>
           <Switch value={isAdmin} onValueChange={toggleAdmin} />
@@ -114,9 +169,33 @@ export default function Perfil() {
           disabled={!isAdmin}
           android_ripple={{ color: colors.border }}
         >
-          <Text style={[styles.btnText, { color: isAdmin ? colors.primary : colors.subtle }]}>Abrir Moderación</Text>
+          <Text
+            style={[
+              styles.btnText,
+              { color: isAdmin ? colors.primary : colors.subtle },
+            ]}
+          >
+            Abrir Moderación
+          </Text>
         </Pressable>
       </View>
+
+      {/* 🔹 Botón de Logout */}
+      <Pressable
+        style={[
+          styles.logoutBtn,
+          {
+            borderColor: colors.border,
+            backgroundColor: "#e74c3c",
+          },
+        ]}
+        onPress={handleLogout}
+        android_ripple={{ color: colors.border }}
+      >
+        <Text style={[styles.logoutText, { color: "white" }]}>
+          Cerrar sesión
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -125,24 +204,43 @@ const styles = StyleSheet.create({
   screen: { flex: 1, padding: 16, gap: 16 },
   card: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
   sectionTitle: { fontSize: 16, fontWeight: "700" },
-  subtitle: { fontSize: 14, color: '#666', marginBottom: 8 },
+  subtitle: { fontSize: 14, color: "#666", marginBottom: 8 },
   carrerasGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  selectedCount: { fontSize: 12, fontWeight: "600", textAlign: "center", marginTop: 4 },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  selectedCount: {
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   label: { fontSize: 16, fontWeight: "600" },
-  btn: { borderWidth: 1, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12, alignSelf: "flex-start" },
+  btn: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    alignSelf: "flex-start",
+  },
   btnText: { fontWeight: "700" },
   rowChips: { flexDirection: "row", gap: 8 },
-  chip: { paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderRadius: 999 },
+  chip: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderRadius: 999,
+  },
   chipText: { fontSize: 13, fontWeight: "700" },
+  logoutBtn: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+  },
+  logoutText: { fontWeight: "700", fontSize: 16 },
 });
-
-
-
-
-
-
-
-
-
-

@@ -1,46 +1,73 @@
-﻿
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./data/firebase";
 import { useThemeColors } from "./hooks/useThemeColors";
-import { useConfesionesStore } from "./store/useConfesionesStore";
-import { seedAprobadas, seedPendientes } from "./data/seed";
+import { useUserStore } from "./store/useUserStore";
 import SplashScreen from "./SplashScreen";
 
 export default function RootLayout() {
   const { colors, effective } = useThemeColors();
-  const seed = useConfesionesStore((s) => s.seed);
-
+  const { user, setUser, setLoading, loading } = useUserStore();
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    seed(seedAprobadas, seedPendientes);
-  }, [seed]);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [setUser, setLoading]);
 
- 
-  const handleSplashFinish = () => {
-    setShowSplash(false);
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
 
-  if (showSplash) {
-    return <SplashScreen onFinish={handleSplashFinish} durationMs={4000} />;
+  if (loading || showSplash) {
+    return <SplashScreen />;
+  }
+
+
+  if (!user) {
+    return (
+      <>
+        <StatusBar style="light" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="auth" />
+        </Stack>
+      </>
+    );
   }
 
 
   return (
     <>
-      <StatusBar style={effective === "dark" ? "light" : "dark"} backgroundColor={colors.headerBg} />
-      <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background } }}>
-        <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+      <StatusBar
+        style={effective === "dark" ? "light" : "dark"}
+        backgroundColor={colors.headerBg}
+      />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+
+        <Stack.Screen name="(drawer)" />
+
+
         <Stack.Screen
           name="moderacion"
           options={{
             title: "Moderación",
-            presentation: "modal",
+            presentation: "modal", 
+            headerShown: true,
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: colors.headerBg },
-            headerTintColor: colors.headerText
+            headerTintColor: colors.headerText,
           }}
         />
       </Stack>
