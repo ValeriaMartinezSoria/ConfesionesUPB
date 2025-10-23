@@ -39,11 +39,14 @@ export default function Register() {
 
       <TextInput
         placeholder="Correo electrónico"
+        placeholderTextColor={colors.inputPlaceholder}
         value={email}
         onChangeText={setEmail}
         style={{
-          backgroundColor: colors.primary,
+          backgroundColor: colors.inputBg,
           color: colors.text,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
           borderRadius: 8,
           padding: 12,
           marginBottom: 10,
@@ -54,12 +57,15 @@ export default function Register() {
 
       <TextInput
         placeholder="Contraseña"
+        placeholderTextColor={colors.inputPlaceholder}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         style={{
-          backgroundColor: colors.primary,
+          backgroundColor: colors.inputBg,
           color: colors.text,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
           borderRadius: 8,
           padding: 12,
           marginBottom: 10,
@@ -68,12 +74,15 @@ export default function Register() {
 
       <TextInput
         placeholder="Confirmar contraseña"
+        placeholderTextColor={colors.inputPlaceholder}
         value={confirm}
         onChangeText={setConfirm}
         secureTextEntry
         style={{
-          backgroundColor: colors.primary,
+          backgroundColor: colors.inputBg,
           color: colors.text,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
           borderRadius: 8,
           padding: 12,
           marginBottom: 20,
@@ -84,13 +93,13 @@ export default function Register() {
         onPress={handleRegister}
         disabled={loading}
         style={{
-          backgroundColor: loading ? "#ccc" : colors.primary,
+          backgroundColor: loading ? colors.inputBg : colors.buttonBg,
           padding: 12,
           borderRadius: 8,
           alignItems: "center",
         }}
       >
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>
+        <Text style={{ color: colors.buttonText, fontWeight: "bold" }}>
           {loading ? "Creando..." : "Registrarse"}
         </Text>
       </TouchableOpacity>

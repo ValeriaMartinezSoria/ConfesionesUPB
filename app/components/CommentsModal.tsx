@@ -10,18 +10,31 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+<<<<<<< HEAD
+=======
+  ActivityIndicator,
+>>>>>>> upstream/feat/image-upload
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { db } from "../data/firebase";
 import { doc, updateDoc, increment } from "firebase/firestore";
 import { useUserStore } from "../store/useUserStore"; 
+<<<<<<< HEAD
+=======
+import * as ImagePicker from "expo-image-picker";
+import { uploadToCloudinary } from "../services/cloudinary";
+>>>>>>> upstream/feat/image-upload
 
 type Comment = {
   id: string;
   text: string;
   createdAt: number;
   confessionId: number;
+<<<<<<< HEAD
+=======
+  image?: string;
+>>>>>>> upstream/feat/image-upload
   likes?: number;
   userId?: string;
 };
@@ -32,7 +45,11 @@ type Props = {
   comments: Comment[];
   newComment: string;
   setNewComment: (text: string) => void;
+<<<<<<< HEAD
   addComment: () => void;
+=======
+  addComment: (image?: string) => void;
+>>>>>>> upstream/feat/image-upload
 };
 
 export default function CommentsModal({
@@ -46,6 +63,50 @@ export default function CommentsModal({
   const { colors } = useThemeColors();
   const [likedComments, setLikedComments] = useState<Record<string, boolean>>({});
   const { user } = useUserStore(); 
+<<<<<<< HEAD
+=======
+
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      const uri = (result as any).uri ?? (result as any).assets?.[0]?.uri;
+      if (uri) setImageUri(uri);
+    }
+  };
+
+  const removeImage = () => setImageUri(null);
+
+  const handleSend = async () => {
+    if (!newComment.trim() && !imageUri) return;
+    let imageUrl: string | undefined;
+    try {
+      if (imageUri) {
+        setUploading(true);
+        const res = await uploadToCloudinary(imageUri);
+        imageUrl = res.secure_url ?? res.url;
+      }
+
+      await addComment(imageUrl);
+      setNewComment("");
+      setImageUri(null);
+    } catch (err) {
+      console.error("Error enviando comentario:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+>>>>>>> upstream/feat/image-upload
   const handleLike = async (commentId: string, liked: boolean) => {
     try {
       const ref = doc(db, "comments", commentId);
@@ -77,7 +138,7 @@ export default function CommentsModal({
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>Comentarios</Text>
             <Pressable onPress={onClose}>
-              <Text style={styles.close}>✕</Text>
+              <Text style={[styles.close, { color: colors.textSecondary }]}>✕</Text>
             </Pressable>
           </View>
 
@@ -100,6 +161,7 @@ export default function CommentsModal({
                 item.userId === user?.uid ? "Tú" : "Anónimo";
 
               return (
+<<<<<<< HEAD
                 <View style={styles.commentRow}>
                   <Image source={{ uri: mockAvatar }} style={styles.avatar} />
                   <View style={styles.commentContent}>
@@ -107,6 +169,21 @@ export default function CommentsModal({
                     <Text style={[styles.commentText, { color: colors.text }]}>
                       {item.text}
                     </Text>
+=======
+                <View style={[styles.commentRow, { backgroundColor: colors.commentBg }]}>
+                  <Image source={{ uri: mockAvatar }} style={[styles.avatar, { backgroundColor: colors.avatarBg }]} />
+                  <View style={styles.commentContent}>
+                    <Text style={[styles.user, { color: colors.text }]}>{userName}</Text>
+                    <Text style={[styles.commentText, { color: colors.text }]}>
+                      {item.text}
+                    </Text>
+                    {item.image ? (
+                      <Image 
+                        source={{ uri: item.image }} 
+                        style={{ width: "100%", height: 180, borderRadius: 10, marginTop: 8 }} 
+                      />
+                    ) : null}
+>>>>>>> upstream/feat/image-upload
                     <View style={styles.likeRow}>
                       <Pressable onPress={() => handleLike(item.id, liked)}>
                         <Ionicons
@@ -128,17 +205,40 @@ export default function CommentsModal({
             }}
           />
 
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, { borderTopColor: colors.border }]}>
             <TextInput
+<<<<<<< HEAD
               style={[styles.input, { color: colors.text }]}
+=======
+              style={[styles.input, { color: colors.text, backgroundColor: colors.inputBg }]}
+>>>>>>> upstream/feat/image-upload
               placeholder="Escribe un comentario..."
-              placeholderTextColor="#aaa"
+              placeholderTextColor={colors.inputPlaceholder}
               value={newComment}
               onChangeText={setNewComment}
             />
-            <Pressable style={styles.button} onPress={addComment}>
-              <Text style={styles.buttonText}>Enviar</Text>
-            </Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Pressable style={styles.cameraButton} onPress={pickImage}>
+                <Ionicons name="image-outline" size={20} color={colors.primary} />
+              </Pressable>
+
+              {imageUri ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Image source={{ uri: imageUri }} style={{ width: 48, height: 48, borderRadius: 8 }} />
+                  <Pressable onPress={removeImage}>
+                    <Text style={{ color: colors.danger }}>Eliminar</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
+              <Pressable style={[styles.button, { backgroundColor: colors.buttonBg }]} onPress={handleSend}>
+                {uploading ? (
+                  <ActivityIndicator color={colors.buttonText} />
+                ) : (
+                  <Text style={[styles.buttonText, { color: colors.buttonText }]}>Enviar</Text>
+                )}
+              </Pressable>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -150,10 +250,13 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContainer: {
+<<<<<<< HEAD
     backgroundColor: "#fff",
+=======
+>>>>>>> upstream/feat/image-upload
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -170,11 +273,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: { fontSize: 18, fontWeight: "bold" },
+<<<<<<< HEAD
   close: { fontSize: 18, color: "#777" },
   commentRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     backgroundColor: "#f9f9f9",
+=======
+  close: { fontSize: 18 },
+  commentRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+>>>>>>> upstream/feat/image-upload
     borderRadius: 10,
     padding: 10,
     marginVertical: 5,
@@ -186,32 +296,51 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   commentContent: { flex: 1 },
+<<<<<<< HEAD
   user: { fontWeight: "600", fontSize: 13, color: "#333" },
   commentText: { fontSize: 14, marginTop: 2 },
   likeRow: { flexDirection: "row", alignItems: "center", marginTop: 6 },
   time: { fontSize: 12 },
   empty: { textAlign: "center", color: "#888", marginTop: 20 },
+=======
+  user: { fontWeight: "600", fontSize: 13 },
+  commentText: { fontSize: 14, marginTop: 2 },
+  likeRow: { flexDirection: "row", alignItems: "center", marginTop: 6 },
+  time: { fontSize: 12 },
+  empty: { textAlign: "center", marginTop: 20 },
+>>>>>>> upstream/feat/image-upload
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
     paddingTop: 10,
+    borderTopWidth: 1,
   },
   input: {
     flex: 1,
-    backgroundColor: "#f2f2f2",
     borderRadius: 20,
     paddingHorizontal: 15,
     paddingVertical: 8,
   },
   button: {
-    backgroundColor: "#3171b4ff",
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 15,
     marginLeft: 8,
   },
+<<<<<<< HEAD
   buttonText: { color: "#fff", fontWeight: "600" },
+=======
+  buttonText: { fontWeight: "600" },
+  cameraButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+>>>>>>> upstream/feat/image-upload
 });

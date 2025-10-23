@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform, ScrollView } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useConfesionesStore } from "../../../store/useConfesionesStore";
 import { useCommentsStore } from "../../../store/useCommentsStore";
+import { useCommentsStore } from "../../../store/useCommentsStore";
 import { useThemeColors } from "../../../hooks/useThemeColors";
 import { Ionicons } from "@expo/vector-icons";
 

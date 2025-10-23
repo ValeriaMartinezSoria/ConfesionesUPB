@@ -58,13 +58,16 @@ export default function Login() {
 
       <TextInput
         placeholder="Correo electrónico"
+        placeholderTextColor={colors.inputPlaceholder}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
         style={{
-          backgroundColor:"#000000ff",
+          backgroundColor: colors.inputBg,
           color: colors.text,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
           borderRadius: 8,
           padding: 12,
           marginBottom: 10,
@@ -73,12 +76,15 @@ export default function Login() {
 
       <TextInput
         placeholder="Contraseña"
+        placeholderTextColor={colors.inputPlaceholder}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         style={{
-          backgroundColor: "#000000ff",
+          backgroundColor: colors.inputBg,
           color: colors.text,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
           borderRadius: 8,
           padding: 12,
           marginBottom: 20,
@@ -89,16 +95,16 @@ export default function Login() {
         onPress={handleLogin}
         disabled={loading}
         style={{
-          backgroundColor: loading ? "#ffffffff" : colors.primary,
+          backgroundColor: loading ? colors.inputBg : colors.buttonBg,
           padding: 12,
           borderRadius: 8,
           alignItems: "center",
         }}
       >
         {loading ? (
-          <ActivityIndicator color="#cccedaff" />
+          <ActivityIndicator color={colors.primary} />
         ) : (
-          <Text style={{ color: "#ffffffff", fontWeight: "bold" }}>Ingresar</Text>
+          <Text style={{ color: colors.buttonText, fontWeight: "bold" }}>Ingresar</Text>
         )}
       </TouchableOpacity>
 

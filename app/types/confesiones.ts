@@ -5,6 +5,7 @@ export type Comment = {
   user: string;
   content: string;
   date: number;
+  image?: string;
 };
 
 export type Confesion = {

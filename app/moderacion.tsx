@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, FlatList, Pressable, StyleSheet, Modal } from "react-native";
+import { View, Text, FlatList, Pressable, StyleSheet, Modal, Image } from "react-native";
 import { useConfesionesStore } from "./store/useConfesionesStore";
 import { useThemeColors } from "./hooks/useThemeColors";
 import type { Confesion } from "./data/seed";
@@ -35,18 +35,21 @@ export default function Moderacion() {
             >
               {item.content}
             </Text>
+            {item.image ? (
+              <Image source={item.image} style={{ width: "100%", height: 180, borderRadius: 10, marginTop: 8 }} />
+            ) : null}
             <View style={styles.row}>
               <Pressable
                 style={[styles.btn, { borderColor: colors.border }]}
                 onPress={() => approve(item.id)}
               >
-                <Text style={[styles.btnText, { color: colors.primary }]}>Aprobar</Text>
+                <Text style={[styles.btnText, { color: colors.success }]}>Aprobar</Text>
               </Pressable>
               <Pressable
                 style={[styles.btn, { borderColor: colors.border }]}
                 onPress={() => reject(item.id)}
               >
-                <Text style={[styles.btnText, { color: "#E5484D" }]}>Rechazar</Text>
+                <Text style={[styles.btnText, { color: colors.danger }]}>Rechazar</Text>
               </Pressable>
             </View>
           </Pressable>
@@ -70,6 +73,9 @@ export default function Moderacion() {
                 <Text style={[styles.modalContent, { color: colors.text }]}>
                   {selected.content}
                 </Text>
+                {selected.image ? (
+                  <Image source={selected.image} style={{ width: "100%", height: 220, borderRadius: 10, marginTop: 8 }} />
+                ) : null}
                 <View style={styles.modalButtons}>
                   <Pressable
                     style={[styles.btn, { borderColor: colors.border }]}
@@ -78,7 +84,7 @@ export default function Moderacion() {
                       setSelected(null);
                     }}
                   >
-                    <Text style={[styles.btnText, { color: colors.primary }]}>
+                    <Text style={[styles.btnText, { color: colors.success }]}>
                       Aprobar
                     </Text>
                   </Pressable>
@@ -89,7 +95,7 @@ export default function Moderacion() {
                       setSelected(null);
                     }}
                   >
-                    <Text style={[styles.btnText, { color: "#E5484D" }]}>
+                    <Text style={[styles.btnText, { color: colors.danger }]}>
                       Rechazar
                     </Text>
                   </Pressable>

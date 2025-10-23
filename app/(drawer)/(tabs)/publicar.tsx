@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, Platform } from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet, Platform, Image, ActivityIndicator, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import { useConfesionesStore } from "../../store/useConfesionesStore";
+import * as ImagePicker from "expo-image-picker";
+import { uploadToCloudinary } from "../../services/cloudinary";
 import type { Confesion } from "../../data/seed";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
 
@@ -29,6 +31,8 @@ export default function NuevaConfesion() {
   const [texto, setTexto] = useState("");
   const [categoria, setCategoria] = useState<Category>("amor");
   const [carrera, setCarrera] = useState("Administración de Empresas");
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const carreras = [
     "Administración de Empresas",
@@ -50,22 +54,44 @@ export default function NuevaConfesion() {
     return colors.primary;
   }, [len, valid, colors]);
 
-const submit = () => {
+const pickImage = async () => {
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) return;
+  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+  if (!result.canceled) {
+    // @ts-ignore
+    const uri = (result as any).uri ?? (result as any).assets?.[0]?.uri;
+    if (uri) setImageUri(uri);
+  }
+};
+
+const submit = async () => {
   if (!valid) return;
-  const conf: Confesion = {
-    id: Date.now(),
-    content: texto.trim(),
-    category: categoria,
-    carrera: carrera,
-    date: Date.now(),
-    likes: 0,
-    nexo: "anónimo",
-  };
-  addPendiente(conf);
-  Keyboard.dismiss(); 
-  setTexto("");
-  setCategoria("amor");
-  setCarrera("Administración de Empresas");
+  let image: any = undefined;
+  try {
+    if (imageUri) {
+      setUploading(true);
+      const res = await uploadToCloudinary(imageUri);
+      image = { uri: res.secure_url ?? res.url };
+    }
+
+    const confPayload = {
+      content: texto.trim(),
+      category: categoria,
+      carrera: carrera,
+      image,
+    };
+    addPendiente(confPayload);
+    Keyboard.dismiss();
+    setTexto("");
+    setCategoria("amor");
+    setCarrera("Administración de Empresas");
+    setImageUri(null);
+  } catch (err) {
+    console.error("Error subiendo imagen:", err);
+  } finally {
+    setUploading(false);
+  }
 };
 
   const chipColor = isLight ? colors.primary : colors.secondary;
@@ -79,7 +105,7 @@ const submit = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-    
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardShadow]}>
         <Text style={[styles.label, { color: colors.text }]}>Tu confesión</Text>
         <TextInput
@@ -91,12 +117,16 @@ const submit = () => {
           maxLength={500}
           style={[styles.input, { color: colors.text }]}
         />
-        <Pressable
-          style={styles.cameraButton}
-          onPress={() => console.log("Abrir cámara (futuro)")}>
+        <Pressable style={styles.cameraButton} onPress={pickImage}>
           <Ionicons name="camera-outline" size={22} color={colors.subtle} />
           <Text style={[styles.cameraText, { color: colors.subtle }]}>Agregar imagen</Text>
         </Pressable>
+
+        {imageUri ? (
+          <View style={{ marginTop: 8 }}>
+            <Image source={{ uri: imageUri }} style={{ width: "100%", height: 200, borderRadius: 12 }} />
+          </View>
+        ) : null}
 
         <View style={styles.rowBetween}>
           <Text style={[styles.hint, { color: counterColor }]}>{len}/500</Text>
@@ -154,7 +184,7 @@ const submit = () => {
 
       <Pressable
         onPress={submit}
-        disabled={!valid}
+        disabled={!valid || uploading}
         style={({ pressed }) => [
           styles.btn,
           { backgroundColor: ctaBg, borderColor: ctaBorder, opacity: valid ? 1 : 0.6 },
@@ -165,16 +195,24 @@ const submit = () => {
         ]}
         android_ripple={valid ? { color: ctaRipple } : undefined}
       >
-        <Ionicons name="send" size={18} color={ctaFg} />
-        <Text style={[styles.btnText, { color: ctaFg }]}>Enviar para moderación</Text>
+        {uploading ? (
+          <ActivityIndicator color={ctaFg} />
+        ) : (
+          <>
+            <Ionicons name="send" size={18} color={ctaFg} />
+            <Text style={[styles.btnText, { color: ctaFg }]}>Enviar para moderación</Text>
+          </>
+        )}
       </Pressable>
+      </ScrollView>
     </View>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16, gap: 16 },
+  screen: { flex: 1, padding: 16, backgroundColor: "transparent" },
+  scrollContent: { gap: 16, paddingBottom: 24 },
   card: { borderRadius: 16, borderWidth: 1, padding: 14, gap: 10 },
   label: { fontSize: 14, fontWeight: "700" },
   input: { minHeight: 120, textAlignVertical: "top", fontSize: 16, lineHeight: 22 },
