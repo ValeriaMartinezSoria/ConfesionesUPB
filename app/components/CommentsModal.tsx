@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -9,15 +9,19 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  ActivityIndicator,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { uploadToCloudinary } from "../services/cloudinary";
 
 interface CommentsModalProps {
   visible: boolean;
   onClose: () => void;
-  comments: string[];
+  comments: any[]; // Comment[]
   newComment: string;
   setNewComment: (text: string) => void;
-  addComment: () => void;
+  addComment: (payload: { user: string; content: string; image?: string }) => void;
 }
 
 const CommentsModal: React.FC<CommentsModalProps> = ({
@@ -28,6 +32,49 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   setNewComment,
   addComment,
 }) => {
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      // expo sdk 48+ uses result.assets
+      // support both shapes
+      // @ts-ignore
+      const uri = (result as any).uri ?? (result as any).assets?.[0]?.uri;
+      if (uri) setImageUri(uri);
+    }
+  };
+
+  const removeImage = () => setImageUri(null);
+
+  const handleSend = async () => {
+    if (!newComment.trim() && !imageUri) return;
+    let imageUrl: string | undefined;
+    try {
+      if (imageUri) {
+        setUploading(true);
+        const res = await uploadToCloudinary(imageUri);
+        imageUrl = res.secure_url ?? res.url;
+      }
+
+      await addComment({ user: "Anónimo", content: newComment.trim(), image: imageUrl });
+      setNewComment("");
+      setImageUri(null);
+    } catch (err) {
+      console.error("Error enviando comentario:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -52,8 +99,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
               <View style={styles.commentItem}>
-                <Text style={styles.user}>Anónimo</Text>
-                <Text style={styles.commentText}>{item}</Text>
+                <Text style={styles.user}>{item.user ?? "Anónimo"}</Text>
+                <Text style={styles.commentText}>{item.content ?? item}</Text>
+                {item.image ? (
+                  <Image source={{ uri: item.image }} style={{ width: "100%", height: 180, borderRadius: 10, marginTop: 8 }} />
+                ) : null}
                 <Text style={styles.time}>Hace un momento · ❤️ 0</Text>
               </View>
             )}
@@ -70,9 +120,28 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
               value={newComment}
               onChangeText={setNewComment}
             />
-            <Pressable style={styles.button} onPress={addComment}>
-              <Text style={styles.buttonText}>Enviar</Text>
-            </Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Pressable style={styles.cameraButton} onPress={pickImage}>
+                <Text style={{ color: "#3171b4ff", fontWeight: "700" }}>📷</Text>
+              </Pressable>
+
+              {imageUri ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Image source={{ uri: imageUri }} style={{ width: 48, height: 48, borderRadius: 8 }} />
+                  <Pressable onPress={removeImage}>
+                    <Text style={{ color: "#888" }}>Eliminar</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
+              <Pressable style={styles.button} onPress={handleSend}>
+                {uploading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Enviar</Text>
+                )}
+              </Pressable>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -164,5 +233,15 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontWeight: "600",
+  },
+  cameraButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
   },
 });

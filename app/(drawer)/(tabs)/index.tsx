@@ -71,9 +71,9 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
     ? commentsByConfession[selectedConfessionId] || []
     : [];
 
-  const handleAddComment = () => {
-    if (selectedConfessionId && newComment.trim()) {
-      addComment(selectedConfessionId, newComment.trim());
+  const handleAddComment = (payload: { user: string; content: string; image?: string }) => {
+    if (selectedConfessionId && payload.content.trim()) {
+      addComment(selectedConfessionId, { user: payload.user, content: payload.content, image: payload.image });
       setNewComment("");
     }
   };

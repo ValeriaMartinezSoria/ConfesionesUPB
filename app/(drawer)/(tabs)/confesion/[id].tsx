@@ -28,9 +28,14 @@ export default function ConfesionDetail() {
   const [newComment, setNewComment] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const addComment = () => {
-    if (newComment.trim()) {
-      setComments((prev) => [...prev, newComment.trim()]);
+  const addComment = (payload: { user: string; content: string; image?: string }) => {
+    if (payload.content.trim()) {
+      const commentText = payload.content.trim();
+      if (payload.image) {
+        setComments((prev) => [...prev, `${commentText} [imagen]`]);
+      } else {
+        setComments((prev) => [...prev, commentText]);
+      }
       setNewComment("");
     }
   };
