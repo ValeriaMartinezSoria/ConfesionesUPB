@@ -16,9 +16,11 @@ export default function RootLayout() {
   const hasCompletedOnboarding = useUserStore((s) => s.hasCompletedOnboarding);
   const hasHydrated = useUserStore.persist?.hasHydrated();
   const [showSplash, setShowSplash] = useState(true);
+  const [lastUserId, setLastUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log("🔐 Auth state changed:", firebaseUser?.email);
       setUser(firebaseUser);
       setLoading(false);
     });
@@ -30,11 +32,29 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Check if this is a new user and reset onboarding
+  useEffect(() => {
+    if (user && hasHydrated) {
+      const currentUserId = user.uid;
+      if (lastUserId !== currentUserId) {
+        console.log("👤 New user detected:", user.email);
+        console.log("📋 hasCompletedOnboarding:", hasCompletedOnboarding);
+        setLastUserId(currentUserId);
+      }
+    } else if (!user && lastUserId) {
+      setLastUserId(null);
+    }
+  }, [user, hasHydrated, lastUserId, hasCompletedOnboarding]);
 
   if (loading || showSplash || !hasHydrated) {
     return <SplashScreen />;
   }
 
+  console.log("🔍 Rendering state:", {
+    user: user?.email,
+    hasCompletedOnboarding,
+    hasHydrated,
+  });
 
   if (!user) {
     return (
@@ -49,6 +69,7 @@ export default function RootLayout() {
 
  
   if (!hasCompletedOnboarding) {
+    console.log("🚀 Showing onboarding wizard");
     return (
       <>
         <StatusBar
@@ -61,6 +82,8 @@ export default function RootLayout() {
       </>
     );
   }
+
+  console.log("✅ Showing main app");
 
   return (
     <>

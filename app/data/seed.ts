@@ -1,81 +1,86 @@
-﻿export type Category = "amor" | "academico" | "random" | "confesion";
+﻿export type Category = "amor" | "academico" | "random" | "carrera" | "facultad";
 
 export type Facultad =
-  | "Ingeniería y Tecnología"
-  | "Economía y Negocios"
-  | "Ciencias Sociales"
-  | "Diseño y Arquitectura"
-  | "Ciencias de la Salud"
-  | "Derecho";
+  | "Facultad de Ciencias Empresariales y Derecho"
+  | "Facultad de Ingenierías y Arquitectura";
 
 export const FACULTADES_DISPONIBLES: Facultad[] = [
-  "Ingeniería y Tecnología",
-  "Economía y Negocios",
-  "Ciencias Sociales",
-  "Diseño y Arquitectura",
-  "Ciencias de la Salud",
-  "Derecho",
+  "Facultad de Ciencias Empresariales y Derecho",
+  "Facultad de Ingenierías y Arquitectura",
 ];
 
 export type Carrera =
-  | "Administración de Empresas"
-  | "Ingeniería de Sistemas"
-  | "Diseño Gráfico"
-  | "Psicología"
-  | "Derecho"
-  | "Ingeniería Civil"
-  | "Ingeniería Industrial"
-  | "Arquitectura"
-  | "Medicina"
-  | "Enfermería"
-  | "Contaduría Pública"
-  | "Marketing"
-  | "Comunicación Social"
-  | "Trabajo Social";
+  | "ADMINISTRACIÓN DE EMPRESAS"
+  | "ANALÍTICA GERENCIAL DE DATOS"
+  | "COMUNICACIÓN"
+  | "DERECHO"
+  | "DISEÑO GRÁFICO"
+  | "ECONOMÍA"
+  | "INGENIERÍA COMERCIAL"
+  | "INGENIERÍA FINANCIERA"
+  | "MARKETING Y LOGÍSTICA"
+  | "PSICOLOGÍA ORGANIZACIONAL"
+  | "RELACIONES Y NEGOCIOS INTERNACIONALES"
+  | "ARQUITECTURA"
+  | "BIOINGENIERÍA EN RECURSOS NATURALES"
+  | "INGENIERÍA CIVIL"
+  | "INGENIERÍA DE INTELIGENCIA ARTIFICIAL"
+  | "INGENIERÍA DE LA PRODUCCIÓN"
+  | "INGENIERÍA DE SISTEMAS COMPUTACIONALES"
+  | "INGENIERÍA DEL MEDIO AMBIENTE Y ENERGÍAS ALTERNATIVAS"
+  | "INGENIERÍA ELECTROMECÁNICA"
+  | "INGENIERÍA ELECTRÓNICA Y TELECOMUNICACIONES"
+  | "INGENIERÍA INDUSTRIAL Y DE SISTEMAS";
 
 export const CARRERAS_DISPONIBLES: Carrera[] = [
-  "Administración de Empresas",
-  "Ingeniería de Sistemas",
-  "Diseño Gráfico",
-  "Psicología",
-  "Derecho",
-  "Ingeniería Civil",
-  "Ingeniería Industrial",
-  "Arquitectura",
-  "Medicina",
-  "Enfermería",
-  "Contaduría Pública",
-  "Marketing",
-  "Comunicación Social",
-  "Trabajo Social",
+  "ADMINISTRACIÓN DE EMPRESAS",
+  "ANALÍTICA GERENCIAL DE DATOS",
+  "COMUNICACIÓN",
+  "DERECHO",
+  "DISEÑO GRÁFICO",
+  "ECONOMÍA",
+  "INGENIERÍA COMERCIAL",
+  "INGENIERÍA FINANCIERA",
+  "MARKETING Y LOGÍSTICA",
+  "PSICOLOGÍA ORGANIZACIONAL",
+  "RELACIONES Y NEGOCIOS INTERNACIONALES",
+  "ARQUITECTURA",
+  "BIOINGENIERÍA EN RECURSOS NATURALES",
+  "INGENIERÍA CIVIL",
+  "INGENIERÍA DE INTELIGENCIA ARTIFICIAL",
+  "INGENIERÍA DE LA PRODUCCIÓN",
+  "INGENIERÍA DE SISTEMAS COMPUTACIONALES",
+  "INGENIERÍA DEL MEDIO AMBIENTE Y ENERGÍAS ALTERNATIVAS",
+  "INGENIERÍA ELECTROMECÁNICA",
+  "INGENIERÍA ELECTRÓNICA Y TELECOMUNICACIONES",
+  "INGENIERÍA INDUSTRIAL Y DE SISTEMAS",
 ];
 
 export const CARRERAS_POR_FACULTAD: Record<Facultad, Carrera[]> = {
-  "Ingeniería y Tecnología": [
-    "Ingeniería de Sistemas",
-    "Ingeniería Civil",
-    "Ingeniería Industrial",
+  "Facultad de Ciencias Empresariales y Derecho": [
+    "ADMINISTRACIÓN DE EMPRESAS",
+    "ANALÍTICA GERENCIAL DE DATOS",
+    "COMUNICACIÓN",
+    "DERECHO",
+    "DISEÑO GRÁFICO",
+    "ECONOMÍA",
+    "INGENIERÍA COMERCIAL",
+    "INGENIERÍA FINANCIERA",
+    "MARKETING Y LOGÍSTICA",
+    "PSICOLOGÍA ORGANIZACIONAL",
+    "RELACIONES Y NEGOCIOS INTERNACIONALES",
   ],
-  "Economía y Negocios": [
-    "Administración de Empresas",
-    "Contaduría Pública",
-    "Marketing",
-  ],
-  "Ciencias Sociales": [
-    "Psicología",
-    "Comunicación Social",
-    "Trabajo Social",
-  ],
-  "Diseño y Arquitectura": [
-    "Diseño Gráfico",
-    "Arquitectura",
-  ],
-  "Ciencias de la Salud": [
-    "Medicina",
-    "Enfermería",
-  ],
-  "Derecho": [
-    "Derecho",
+  "Facultad de Ingenierías y Arquitectura": [
+    "ARQUITECTURA",
+    "BIOINGENIERÍA EN RECURSOS NATURALES",
+    "INGENIERÍA CIVIL",
+    "INGENIERÍA DE INTELIGENCIA ARTIFICIAL",
+    "INGENIERÍA DE LA PRODUCCIÓN",
+    "INGENIERÍA DE SISTEMAS COMPUTACIONALES",
+    "INGENIERÍA DEL MEDIO AMBIENTE Y ENERGÍAS ALTERNATIVAS",
+    "INGENIERÍA ELECTROMECÁNICA",
+    "INGENIERÍA ELECTRÓNICA Y TELECOMUNICACIONES",
+    "INGENIERÍA INDUSTRIAL Y DE SISTEMAS",
   ],
 };
 
@@ -95,7 +100,7 @@ export const seedAprobadas: Confesion[] = [
     id: 1,
     content: "Me gusta alguien del aula 302 pero no sé cómo hablarle.",
     category: "amor",
-    carrera: "Administración de Empresas",
+    carrera: "ADMINISTRACIÓN DE EMPRESAS",
     date: Date.now() - 1000 * 60 * 60,
     likes: 2,
     nexo: "Anónimo",
@@ -104,7 +109,7 @@ export const seedAprobadas: Confesion[] = [
     id: 2,
     content: "El examen de cálculo estuvo brutal, ojalá suban la nota.",
     category: "academico",
-    carrera: "Ingeniería de Sistemas",
+    carrera: "INGENIERÍA DE SISTEMAS COMPUTACIONALES",
     date: Date.now() - 1000 * 60 * 160,
     likes: 4,
     nexo: "Anónimo",
@@ -113,11 +118,10 @@ export const seedAprobadas: Confesion[] = [
     id: 3,
     content: "Vi un perrito en la cafetería y me alegró el día.",
     category: "random",
-    carrera: "Diseño Gráfico",
+    carrera: "MARKETING Y LOGÍSTICA",
     date: Date.now() - 1000 * 60 * 300,
     likes: 1,
     nexo: "Anónimo",
-    image: require("../../assets/icon.png"),
   },
 ];
 
@@ -126,7 +130,7 @@ export const seedPendientes: Confesion[] = [
     id: 101,
     content: "Confieso que dejé todo para la última semana.",
     category: "academico",
-    carrera: "Ingeniería Comercial",
+    carrera: "INGENIERÍA COMERCIAL",
     date: Date.now() - 1000 * 60 * 30,
     likes: 0,
     nexo: "Anónimo",

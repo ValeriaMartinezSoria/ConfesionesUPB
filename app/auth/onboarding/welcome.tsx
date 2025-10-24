@@ -4,10 +4,11 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  SafeAreaView,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Screen } from "../../components/Screen";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import { useUserStore } from "../../store/useUserStore";
 
@@ -24,7 +25,7 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <Screen style={{ backgroundColor: colors.background }}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <View
@@ -68,8 +69,13 @@ export default function WelcomeScreen() {
 
         <View style={styles.footer}>
           <Pressable
-            style={[styles.button, { backgroundColor: colors.primary }]}
+            style={[
+              styles.button,
+              { backgroundColor: colors.primary },
+              Platform.OS === "android" && styles.androidButton,
+            ]}
             onPress={() => router.push("/auth/onboarding/faculties")}
+            android_ripple={{ color: colors.surface + "40" }}
           >
             <Text style={[styles.buttonText, { color: colors.surface }]}>
               Comenzar
@@ -80,6 +86,7 @@ export default function WelcomeScreen() {
           <Pressable
             onPress={handleSkip}
             style={styles.skipButton}
+            android_ripple={{ color: colors.border }}
           >
             <Text style={[styles.skipText, { color: colors.subtle }]}>
               Omitir por ahora
@@ -87,7 +94,7 @@ export default function WelcomeScreen() {
           </Pressable>
         </View>
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -123,14 +130,11 @@ function StepItem({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingTop: Platform.OS === "ios" ? 60 : 40,
+    paddingBottom: Platform.OS === "ios" ? 40 : 24,
   },
   iconContainer: {
     alignItems: "center",
@@ -194,6 +198,20 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  androidButton: {
+    elevation: 3,
   },
   buttonText: {
     fontSize: 16,
@@ -202,6 +220,7 @@ const styles = StyleSheet.create({
   skipButton: {
     alignItems: "center",
     paddingVertical: 12,
+    borderRadius: 8,
   },
   skipText: {
     fontSize: 14,

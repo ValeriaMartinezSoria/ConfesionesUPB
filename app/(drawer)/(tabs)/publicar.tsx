@@ -1,16 +1,27 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, Platform, Image, ActivityIndicator, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  Platform,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Alert,
+  ToastAndroid,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import { useConfesionesStore } from "../../store/useConfesionesStore";
 import * as ImagePicker from "expo-image-picker";
 import { uploadToCloudinary } from "../../services/cloudinary";
-import type { Confesion } from "../../data/seed";
-import { Keyboard, TouchableWithoutFeedback } from "react-native";
+import { CARRERAS_DISPONIBLES, type Category } from "../../data/seed";
 
 
-
-type Category = "amor" | "academico" | "random";
 
 const cardShadow = Platform.OS === "ios"
   ? { shadowColor: "black", shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } }
@@ -30,20 +41,11 @@ export default function NuevaConfesion() {
   const addPendiente = useConfesionesStore((s) => s.addPendiente);
   const [texto, setTexto] = useState("");
   const [categoria, setCategoria] = useState<Category>("amor");
-  const [carrera, setCarrera] = useState("Administración de Empresas");
+  const [carrera, setCarrera] = useState(CARRERAS_DISPONIBLES[0]);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  const carreras = [
-    "Administración de Empresas",
-    "Comunicación",
-    "Derecho",
-    "Economía",
-    "Ingeniería Comercial",
-    "Ingeniería Financiera",
-    "Ingeniería de Sistemas",
-    "Diseño Gráfico",
-  ];
+  const carreras = useMemo(() => CARRERAS_DISPONIBLES, []);
 
   const len = texto.trim().length;
   const valid = len >= 10 && len <= 500;
@@ -80,11 +82,19 @@ const submit = async () => {
       carrera: carrera,
       image,
     };
-    addPendiente(confPayload);
+    const success = await addPendiente(confPayload);
+    if (!success) return;
+
+    if (Platform.OS === "android") {
+      ToastAndroid.show("En revi-sión", ToastAndroid.SHORT);
+    } else {
+      Alert.alert("En revi-sión");
+    }
+
     Keyboard.dismiss();
     setTexto("");
     setCategoria("amor");
-    setCarrera("Administración de Empresas");
+    setCarrera(CARRERAS_DISPONIBLES[0]);
     setImageUri(null);
   } catch (err) {
     console.error("Error subiendo imagen:", err);
@@ -94,7 +104,20 @@ const submit = async () => {
 };
 
   const chipColor = isLight ? colors.primary : colors.secondary;
-  const label = (c: Category) => (c === "amor" ? "Amor" : c === "academico" ? "Académico" : "Random");
+  const label = (c: Category) => {
+    switch (c) {
+      case "academico":
+        return "Académico";
+      case "random":
+        return "Random";
+      case "carrera":
+        return "Carrera";
+      case "facultad":
+        return "Facultad";
+      default:
+        return "Amor";
+    }
+  };
 
   const ctaBg = isLight ? colors.surface : colors.secondary;
   const ctaBorder = isLight ? colors.primary : alpha(colors.secondary, 0.3);
@@ -137,7 +160,7 @@ const submit = async () => {
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.label, { color: colors.text }]}>Categoría</Text>
         <View style={styles.rowChips}>
-          {(["amor", "academico", "random"] as Category[]).map((c) => {
+          {(["amor", "academico", "random", "carrera", "facultad"] as Category[]).map((c) => {
             const selected = categoria === c;
             return (
               <Pressable

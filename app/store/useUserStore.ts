@@ -14,6 +14,13 @@ type UserPreferences = {
   notifyOnTrending?: boolean;
 };
 
+type UserData = {
+  carrerasDeInteres: Carrera[];
+  facultadesDeInteres: Facultad[];
+  preferences: UserPreferences;
+  hasCompletedOnboarding: boolean;
+};
+
 type UserStore = {
   user: User | null;
   carrerasDeInteres: Carrera[];
@@ -21,6 +28,7 @@ type UserStore = {
   preferences: UserPreferences;
   hasCompletedOnboarding: boolean;
   loading: boolean;
+  userDataMap: Record<string, UserData>;
 
   setUser: (user: User | null) => void;
   setLoading: (value: boolean) => void;
@@ -38,6 +46,8 @@ type UserStore = {
   removeCategoryOfInterest: (category: Category) => void;
 
   setHasCompletedOnboarding: (completed: boolean) => void;
+  loadUserData: (userId: string) => void;
+  saveUserData: () => void;
 
   logout: () => Promise<void>;
 };
@@ -54,53 +64,109 @@ export const useUserStore = create<UserStore>()(
       },
       hasCompletedOnboarding: false,
       loading: true,
+      userDataMap: {},
 
-      setUser: (user) => set({ user }),
+      setUser: (user) => {
+        set({ user });
+        if (user) {
+          get().loadUserData(user.uid);
+        }
+      },
       setLoading: (value) => set({ loading: value }),
 
+      loadUserData: (userId) => {
+        const { userDataMap } = get();
+        const userData = userDataMap[userId];
+        if (userData) {
+          console.log("📂 Loading user data for:", userId);
+          set({
+            carrerasDeInteres: userData.carrerasDeInteres,
+            facultadesDeInteres: userData.facultadesDeInteres,
+            preferences: userData.preferences,
+            hasCompletedOnboarding: userData.hasCompletedOnboarding,
+          });
+        } else {
+          console.log("🆕 New user, resetting data for:", userId);
+          set({
+            carrerasDeInteres: [],
+            facultadesDeInteres: [],
+            preferences: {
+              categoriesOfInterest: [],
+              notifyOnTrending: true,
+            },
+            hasCompletedOnboarding: false,
+          });
+        }
+      },
+
+      saveUserData: () => {
+        const { user, carrerasDeInteres, facultadesDeInteres, preferences, hasCompletedOnboarding, userDataMap } = get();
+        if (user) {
+          console.log("💾 Saving user data for:", user.uid);
+          set({
+            userDataMap: {
+              ...userDataMap,
+              [user.uid]: {
+                carrerasDeInteres,
+                facultadesDeInteres,
+                preferences,
+                hasCompletedOnboarding,
+              },
+            },
+          });
+        }
+      },
+
       addCarreraDeInteres: (carrera) => {
-        const { carrerasDeInteres } = get();
+        const { carrerasDeInteres, saveUserData } = get();
         if (!carrerasDeInteres.includes(carrera)) {
           set({ carrerasDeInteres: [...carrerasDeInteres, carrera] });
+          saveUserData();
         }
       },
 
       removeCarreraDeInteres: (carrera) => {
-        const { carrerasDeInteres } = get();
+        const { carrerasDeInteres, saveUserData } = get();
         set({
           carrerasDeInteres: carrerasDeInteres.filter((c) => c !== carrera),
         });
+        saveUserData();
       },
 
       setCarrerasDeInteres: (carreras) => {
         set({ carrerasDeInteres: carreras });
+        get().saveUserData();
       },
 
       addFacultadDeInteres: (facultad) => {
-        const { facultadesDeInteres } = get();
+        const { facultadesDeInteres, saveUserData } = get();
         if (!facultadesDeInteres.includes(facultad)) {
           set({ facultadesDeInteres: [...facultadesDeInteres, facultad] });
+          saveUserData();
         }
       },
 
       removeFacultadDeInteres: (facultad) => {
-        const { facultadesDeInteres } = get();
+        const { facultadesDeInteres, saveUserData } = get();
         set({
           facultadesDeInteres: facultadesDeInteres.filter((f) => f !== facultad),
         });
+        saveUserData();
       },
 
       setFacultadesDeInteres: (facultades) => {
         set({ facultadesDeInteres: facultades });
+        get().saveUserData();
       },
 
       setPreferences: (newPreferences) => {
-        const { preferences } = get();
+        const { preferences, saveUserData } = get();
         set({ preferences: { ...preferences, ...newPreferences } });
+        saveUserData();
       },
 
       addCategoryOfInterest: (category) => {
-        const { preferences } = get();
+        const { preferences, saveUserData } = get();
         if (!preferences.categoriesOfInterest.includes(category)) {
           set({
             preferences: {
@@ -108,11 +174,12 @@ export const useUserStore = create<UserStore>()(
               categoriesOfInterest: [...preferences.categoriesOfInterest, category],
             },
           });
+          saveUserData();
         }
       },
 
       removeCategoryOfInterest: (category) => {
-        const { preferences } = get();
+        const { preferences, saveUserData } = get();
         set({
           preferences: {
             ...preferences,
@@ -121,10 +188,12 @@ export const useUserStore = create<UserStore>()(
             ),
           },
         });
+        saveUserData();
       },
 
       setHasCompletedOnboarding: (completed) => {
         set({ hasCompletedOnboarding: completed });
+        get().saveUserData();
       },
 
       logout: async () => {
@@ -150,10 +219,7 @@ export const useUserStore = create<UserStore>()(
       name: "user-storage",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        carrerasDeInteres: state.carrerasDeInteres,
-        facultadesDeInteres: state.facultadesDeInteres,
-        preferences: state.preferences,
-        hasCompletedOnboarding: state.hasCompletedOnboarding,
+        userDataMap: state.userDataMap,
       }),
     }
   )
