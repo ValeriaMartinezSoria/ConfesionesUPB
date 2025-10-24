@@ -6,6 +6,7 @@ import { useConfesionesStore } from "../../store/useConfesionesStore";
 import * as ImagePicker from "expo-image-picker";
 import { uploadToCloudinary } from "../../services/cloudinary";
 import type { Confesion } from "../../data/seed";
+import { CARRERAS_DISPONIBLES } from "../../data/seed";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
 
 
@@ -33,17 +34,6 @@ export default function NuevaConfesion() {
   const [carrera, setCarrera] = useState("Administración de Empresas");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-
-  const carreras = [
-    "Administración de Empresas",
-    "Comunicación",
-    "Derecho",
-    "Economía",
-    "Ingeniería Comercial",
-    "Ingeniería Financiera",
-    "Ingeniería de Sistemas",
-    "Diseño Gráfico",
-  ];
 
   const len = texto.trim().length;
   const valid = len >= 10 && len <= 500;
@@ -160,7 +150,7 @@ const submit = async () => {
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.label, { color: colors.text }]}>Carrera</Text>
         <View style={styles.rowChips}>
-          {carreras.map((c) => {
+          {CARRERAS_DISPONIBLES.map((c) => {
             const selected = carrera === c;
             return (
               <Pressable
