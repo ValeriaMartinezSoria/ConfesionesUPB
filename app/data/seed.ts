@@ -18,62 +18,138 @@ export const FACULTADES_DISPONIBLES: Facultad[] = [
 ];
 
 export type Carrera =
-  | "Administración de Empresas"
-  | "Ingeniería de Sistemas"
-  | "Diseño Gráfico"
-  | "Psicología"
-  | "Derecho"
-  | "Ingeniería Civil"
-  | "Ingeniería Industrial"
+  // FIA - Facultad de Ingenierías y Arquitectura
   | "Arquitectura"
-  | "Medicina"
-  | "Enfermería"
-  | "Contaduría Pública"
-  | "Marketing"
-  | "Comunicación"
-  | "Trabajo Social";
+  | "Ingeniería Civil"
+  | "Ingeniería Electromecánica"
+  | "Ingeniería del Medio Ambiente y Energías Alternativas"
+  | "Ingeniería de la Producción"
+  | "Ingeniería de Sistemas"
+  | "Ingeniería de Petróleo y Gas Natural"
+  | "Ingeniería de Sistemas Electrónicos y Telecomunicaciones"
+  | "Ingeniería Industrial y de Sistemas"
+  | "Inteligencia Artificial"
+  // FACED - Facultad de Ciencias Empresariales y Derecho
+  | "Administración de Empresas"
+  | "Analítica Gerencial de Datos"
+  | "Economía"
+  | "Ingeniería Comercial"
+  | "Ingeniería Financiera"
+  | "Marketing y Logística"
+  | "Relaciones y Negocios Internacionales"
+  | "Derecho"
+  | "Psicología Organizacional";
 
 export const CARRERAS_DISPONIBLES: Carrera[] = [
-  "Administración de Empresas",
-  "Ingeniería de Sistemas",
-  "Diseño Gráfico",
-  "Psicología",
-  "Derecho",
-  "Ingeniería Civil",
-  "Ingeniería Industrial",
+  // FIA
   "Arquitectura",
-  "Medicina",
-  "Enfermería",
-  "Contaduría Pública",
-  "Marketing",
-  "Comunicación",
-  "Trabajo Social",
+  "Ingeniería Civil",
+  "Ingeniería Electromecánica",
+  "Ingeniería del Medio Ambiente y Energías Alternativas",
+  "Ingeniería de la Producción",
+  "Ingeniería de Sistemas",
+  "Ingeniería de Petróleo y Gas Natural",
+  "Ingeniería de Sistemas Electrónicos y Telecomunicaciones",
+  "Ingeniería Industrial y de Sistemas",
+  "Inteligencia Artificial",
+  // FACED
+  "Administración de Empresas",
+  "Analítica Gerencial de Datos",
+  "Economía",
+  "Ingeniería Comercial",
+  "Ingeniería Financiera",
+  "Marketing y Logística",
+  "Relaciones y Negocios Internacionales",
+  "Derecho",
+  "Psicología Organizacional",
 ];
+
+// Tipos para las grandes facultades
+export type FacultadGrande = "FIA" | "FACED";
+
+// Clasificación de carreras por FIA (Ingeniería y Arquitectura) y FACED
+export const CARRERAS_FIA: Carrera[] = [
+  "Arquitectura",
+  "Ingeniería Civil",
+  "Ingeniería Electromecánica",
+  "Ingeniería del Medio Ambiente y Energías Alternativas",
+  "Ingeniería de la Producción",
+  "Ingeniería de Sistemas",
+  "Ingeniería de Petróleo y Gas Natural",
+  "Ingeniería de Sistemas Electrónicos y Telecomunicaciones",
+  "Ingeniería Industrial y de Sistemas",
+  "Inteligencia Artificial",
+];
+
+export const CARRERAS_FACED: Carrera[] = [
+  "Administración de Empresas",
+  "Analítica Gerencial de Datos",
+  "Economía",
+  "Ingeniería Comercial",
+  "Ingeniería Financiera",
+  "Marketing y Logística",
+  "Relaciones y Negocios Internacionales",
+  "Derecho",
+  "Psicología Organizacional",
+];
+
+// Función para obtener la facultad grande de una carrera
+export function getFacultadGrande(carrera: string): FacultadGrande {
+  // Verificar si es una ingeniería o arquitectura
+  const carreraLower = carrera.toLowerCase();
+  
+  // Lista de palabras clave para FIA
+  const palabrasFIA = ['ingeniería', 'ingenieria', 'arquitectura', 'inteligencia artificial'];
+  
+  // Excepciones que van a FACED aunque contengan "ingeniería"
+  const excepcionesFACED = ['ingeniería comercial', 'ingenieria comercial', 'ingeniería financiera', 'ingenieria financiera'];
+  
+  // Verificar excepciones primero
+  if (excepcionesFACED.some(exc => carreraLower.includes(exc))) {
+    return "FACED";
+  }
+  
+  // Verificar si es de FIA por las listas oficiales
+  if (CARRERAS_FIA.includes(carrera as Carrera)) {
+    return "FIA";
+  }
+  
+  // Verificar por palabras clave
+  if (palabrasFIA.some(palabra => carreraLower.includes(palabra))) {
+    return "FIA";
+  }
+  
+  // Por defecto, FACED
+  return "FACED";
+}
 
 export const CARRERAS_POR_FACULTAD: Record<Facultad, Carrera[]> = {
   "Ingeniería y Tecnología": [
-    "Ingeniería de Sistemas",
     "Ingeniería Civil",
-    "Ingeniería Industrial",
+    "Ingeniería Electromecánica",
+    "Ingeniería del Medio Ambiente y Energías Alternativas",
+    "Ingeniería de la Producción",
+    "Ingeniería de Sistemas",
+    "Ingeniería de Petróleo y Gas Natural",
+    "Ingeniería de Sistemas Electrónicos y Telecomunicaciones",
+    "Ingeniería Industrial y de Sistemas",
+    "Inteligencia Artificial",
   ],
   "Economía y Negocios": [
     "Administración de Empresas",
-    "Contaduría Pública",
-    "Marketing",
+    "Analítica Gerencial de Datos",
+    "Economía",
+    "Ingeniería Comercial",
+    "Ingeniería Financiera",
+    "Marketing y Logística",
+    "Relaciones y Negocios Internacionales",
+    "Psicología Organizacional",
   ],
-  "Ciencias Sociales": [
-    "Psicología",
-    "Comunicación",
-    "Trabajo Social",
-  ],
+  "Ciencias Sociales": [],
   "Diseño y Arquitectura": [
-    "Diseño Gráfico",
     "Arquitectura",
   ],
-  "Ciencias de la Salud": [
-    "Medicina",
-    "Enfermería",
-  ],
+  "Ciencias de la Salud": [],
   "Derecho": [
     "Derecho",
   ],
@@ -113,7 +189,7 @@ export const seedAprobadas: Confesion[] = [
     id: 3,
     content: "Vi un perrito en la cafetería y me alegró el día.",
     category: "random",
-    carrera: "Diseño Gráfico",
+    carrera: "Arquitectura",
     date: Date.now() - 1000 * 60 * 300,
     likes: 1,
     nexo: "Anónimo",
@@ -123,7 +199,7 @@ export const seedAprobadas: Confesion[] = [
   id: 300,
     content: "Vi un perrito en la cafetería y me alegró el día.",
     category: "random",
-    carrera: "Diseño Gráfico",
+    carrera: "Marketing y Logística",
     date: Date.now() - 1000 * 60 * 300,
     likes: 1,
     nexo: "Anónimo",
@@ -133,7 +209,7 @@ export const seedAprobadas: Confesion[] = [
         id: 4,
         content: "A veces estudio más en la cafetería que en mi casa.",
         category: "academico",
-        carrera: "Psicología",
+        carrera: "Psicología Organizacional",
         date: Date.now(),
         likes: 0,
         nexo: "Anónimo",
@@ -151,7 +227,7 @@ export const seedAprobadas: Confesion[] = [
         id: 6,
         content: "Me gusta mi compañero de grupo, pero es muy distraído.",
         category: "amor",
-        carrera: "Diseño Gráfico",
+        carrera: "Ingeniería Civil",
         date: Date.now(),
         likes: 2,
         nexo: "Anónimo",
@@ -161,7 +237,7 @@ export const seedAprobadas: Confesion[] = [
   id: 10,
   content: "Confieso que me gusta alguien de mi grupo pero temo arruinar la amistad.",
   category: "amor",
-  carrera: "Psicología",
+  carrera: "Psicología Organizacional",
   date: Date.now(),
   likes: 0,
   nexo: "Anónimo",
@@ -188,7 +264,7 @@ export const seedAprobadas: Confesion[] = [
   id: 13,
   content: "Vi a un profe comiendo solo y me dio ganas de acompañarlo.",
   category: "random",
-  carrera: "Diseño Gráfico",
+  carrera: "Inteligencia Artificial",
   date: Date.now(),
   likes: 2,
   nexo: "Anónimo",
@@ -197,7 +273,7 @@ export const seedAprobadas: Confesion[] = [
   id: 14,
   content: "Me enamoré de alguien que solo veo en clases virtuales.",
   category: "amor",
-  carrera: "Contaduría Pública",
+  carrera: "Economía",
   date: Date.now(),
   likes: 3,
   nexo: "Anónimo",

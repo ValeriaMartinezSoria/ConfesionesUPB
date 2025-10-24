@@ -18,7 +18,8 @@ import {
   FACULTADES_DISPONIBLES,
 } from "../../store/useUserStore";
 import { useRouter } from "expo-router";
-import type { Category } from "../../data/seed";
+import type { Category, FacultadGrande } from "../../data/seed";
+import { CARRERAS_FIA, CARRERAS_FACED } from "../../data/seed";
 
 const CATEGORIES_INFO: Array<{ id: Category; name: string; icon: any }> = [
   { id: "amor", name: "Amor", icon: "heart" },
@@ -157,60 +158,79 @@ export default function Perfil() {
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Facultades de Interés</Text>
           </View>
           <Text style={[styles.subtitle, { color: colors.subtle }]}>
-            Selecciona las facultades que te interesan
+            Selecciona las facultades que te interesan para personalizar tu feed
           </Text>
-          <View style={styles.chipsGrid}>
-            {FACULTADES_DISPONIBLES.map((facultad) => (
-              <Chip
-                key={facultad}
-                label={facultad}
-                selected={facultadesDeInteres.includes(facultad)}
-                onPress={() =>
-                  toggleSelection(
-                    facultadesDeInteres,
-                    facultad,
-                    addFacultadDeInteres,
-                    removeFacultadDeInteres
-                  )
-                }
-                color={colors.primary}
-                border={colors.border}
-                textColor={colors.text}
-                icon="school-outline"
-              />
-            ))}
+          
+          {/* Card FIA */}
+          <View style={[styles.facultadCard, { 
+            backgroundColor: colors.secondary + "15", 
+            borderColor: colors.secondary 
+          }]}>
+            <View style={styles.facultadHeader}>
+              <View style={[styles.facultadBadge, { backgroundColor: colors.secondary }]}>
+                <Text style={[styles.facultadBadgeText, { color: colors.surface }]}>FIA</Text>
+              </View>
+              <Text style={[styles.facultadTitle, { color: colors.text }]}>
+                Facultad de Ingenierías y Arquitectura
+              </Text>
+            </View>
+            <View style={styles.carrerasChips}>
+              {CARRERAS_FIA.map((carrera) => (
+                <Chip
+                  key={carrera}
+                  label={carrera}
+                  selected={carrerasDeInteres.includes(carrera)}
+                  onPress={() =>
+                    toggleSelection(
+                      carrerasDeInteres,
+                      carrera,
+                      addCarreraDeInteres,
+                      removeCarreraDeInteres
+                    )
+                  }
+                  color={colors.secondary}
+                  border={colors.border}
+                  textColor={colors.text}
+                  icon="construct-outline"
+                />
+              ))}
+            </View>
           </View>
-        </View>
 
-        
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="book" size={20} color={colors.primary} />
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Carreras de Interés</Text>
-          </View>
-          <Text style={[styles.subtitle, { color: colors.subtle }]}>
-            Las confesiones de estas carreras aparecerán primero en tu feed
-          </Text>
-          <View style={styles.chipsGrid}>
-            {CARRERAS_DISPONIBLES.map((carrera) => (
-              <Chip
-                key={carrera}
-                label={carrera}
-                selected={carrerasDeInteres.includes(carrera)}
-                onPress={() =>
-                  toggleSelection(
-                    carrerasDeInteres,
-                    carrera,
-                    addCarreraDeInteres,
-                    removeCarreraDeInteres
-                  )
-                }
-                color={colors.primary}
-                border={colors.border}
-                textColor={colors.text}
-                icon="ribbon-outline"
-              />
-            ))}
+          {/* Card FACED */}
+          <View style={[styles.facultadCard, { 
+            backgroundColor: colors.success + "15", 
+            borderColor: colors.success 
+          }]}>
+            <View style={styles.facultadHeader}>
+              <View style={[styles.facultadBadge, { backgroundColor: colors.success }]}>
+                <Text style={[styles.facultadBadgeText, { color: colors.surface }]}>FACED</Text>
+              </View>
+              <Text style={[styles.facultadTitle, { color: colors.text }]}>
+                Facultad de Ciencias Empresariales y Derecho
+              </Text>
+            </View>
+            <View style={styles.carrerasChips}>
+              {CARRERAS_FACED.map((carrera) => (
+                <Chip
+                  key={carrera}
+                  label={carrera}
+                  selected={carrerasDeInteres.includes(carrera)}
+                  onPress={() =>
+                    toggleSelection(
+                      carrerasDeInteres,
+                      carrera,
+                      addCarreraDeInteres,
+                      removeCarreraDeInteres
+                    )
+                  }
+                  color={colors.success}
+                  border={colors.border}
+                  textColor={colors.text}
+                  icon="briefcase-outline"
+                />
+              ))}
+            </View>
           </View>
         </View>
 
@@ -449,5 +469,38 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 20,
+  },
+  facultadCard: {
+    borderRadius: 12,
+    borderWidth: 2,
+    padding: 14,
+    gap: 12,
+    marginTop: 8,
+  },
+  facultadHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  facultadBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  facultadBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  facultadTitle: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 18,
+  },
+  carrerasChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
 });

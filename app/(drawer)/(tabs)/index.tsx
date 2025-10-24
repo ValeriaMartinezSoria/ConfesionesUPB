@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Platform,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +16,7 @@ import { useCommentsStore } from "../../store/useCommentsStore";
 import { useUserStore } from "../../store/useUserStore";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import type { Confesion, Category } from "../../data/seed";
+import { getFacultadGrande, type FacultadGrande } from "../../data/seed";
 import { Image } from "react-native"; 
 import CommentsModal from "../../components/CommentsModal";
 import ImageModal from "../../components/ImageModal"; 
@@ -109,6 +111,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] =
     useState<"all" | Category>("all");
   const [sortMode, setSortMode] = useState<"recent" | "trending">("recent");
+  const [selectedFacultad, setSelectedFacultad] = useState<"all" | FacultadGrande>("all");
 
   const categories: Array<"all" | Category> = [
     "all",
@@ -143,24 +146,18 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
       });
     }
 
+    // Filtrar por facultad
+    if (selectedFacultad !== "all") {
+      sorted = sorted.filter((c) => getFacultadGrande(c.carrera) === selectedFacultad);
+    }
     
+    // Filtrar por categoría
     if (selectedCategory === "all") return sorted;
     return sorted.filter((c) => c.category === selectedCategory);
-  }, [getAprobadasSorted, carrerasDeInteres, selectedCategory, aprobadas, sortMode, commentsByConfession]);
+  }, [getAprobadasSorted, carrerasDeInteres, selectedCategory, selectedFacultad, aprobadas, sortMode, commentsByConfession]);
 
   const catColor = isLight ? colors.primary : colors.secondary;
   const likedColor = isLight ? colors.primary : colors.secondary;
-
-  if (!data.length) {
-    return (
-      <View style={[styles.empty, { backgroundColor: colors.background }]}>
-        <Ionicons name="chatbubbles-outline" size={40} color={colors.subtle} />
-        <Text style={[styles.emptyText, { color: colors.subtle }]}>
-          No hay confesiones aún.
-        </Text>
-      </View>
-    );
-  }
 
   const displayName = (cat: "all" | Category) => {
     if (cat === "all") return "Todos";
@@ -168,30 +165,13 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
     return cat.charAt(0).toUpperCase() + cat.slice(1);
   };
 
+  const getFacultadColor = (carrera: string) => {
+    return getFacultadGrande(carrera) === "FIA" ? colors.secondary : colors.success;
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       
-      {carrerasDeInteres.length > 0 && (
-        <View
-          style={[
-            styles.interestBanner,
-            {
-              backgroundColor: colors.primary + "15",
-              borderColor: colors.primary,
-            },
-          ]}
-        >
-          <Ionicons name="star" size={16} color={colors.primary} />
-          <Text style={[styles.interestText, { color: colors.primary }]}>
-            Mostrando primero: {carrerasDeInteres.slice(0, 2).join(", ")}
-            {carrerasDeInteres.length > 2
-              ? ` y ${carrerasDeInteres.length - 2} más`
-              : ""}
-          </Text>
-        </View>
-      )}
-
-     
       <View style={styles.sortRow}>
         <Pressable
           onPress={() => setSortMode("recent")}
@@ -250,8 +230,40 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
         </Pressable>
       </View>
 
-      <View style={styles.filterRow}>
-        {categories.map((cat) => (
+      {/* Filtros combinados en ScrollView horizontal */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterScrollContent}
+        style={styles.filterScroll}
+      >
+        <Pressable
+          onPress={() => setSelectedCategory("all")}
+          style={[
+            styles.filterPill,
+            {
+              borderColor: colors.border,
+              backgroundColor:
+                selectedCategory === "all" ? colors.primary : "transparent",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.filterText,
+              {
+                color:
+                  selectedCategory === "all"
+                    ? colors.surface
+                    : colors.text,
+              },
+            ]}
+          >
+            {displayName("all")}
+          </Text>
+        </Pressable>
+
+        {categories.filter(cat => cat !== "all").map((cat) => (
           <Pressable
             key={cat}
             onPress={() => setSelectedCategory(cat)}
@@ -279,8 +291,63 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
             </Text>
           </Pressable>
         ))}
-      </View>
 
+        {/* Filtros de Facultad */}
+        <Pressable
+          onPress={() => setSelectedFacultad(selectedFacultad === "FIA" ? "all" : "FIA")}
+          style={[
+            styles.filterPill,
+            {
+              borderColor: colors.secondary,
+              backgroundColor:
+                selectedFacultad === "FIA" ? colors.secondary : "transparent",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.filterText,
+              {
+                color: selectedFacultad === "FIA" ? colors.surface : colors.secondary,
+              },
+            ]}
+          >
+            FIA
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setSelectedFacultad(selectedFacultad === "FACED" ? "all" : "FACED")}
+          style={[
+            styles.filterPill,
+            {
+              borderColor: colors.success,
+              backgroundColor:
+                selectedFacultad === "FACED" ? colors.success : "transparent",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.filterText,
+              {
+                color: selectedFacultad === "FACED" ? colors.surface : colors.success,
+              },
+            ]}
+          >
+            FACED
+          </Text>
+        </Pressable>
+      </ScrollView>
+
+      {!data.length ? (
+        <View style={[styles.empty, { flex: 1 }]}>
+          <Ionicons name="chatbubbles-outline" size={40} color={colors.subtle} />
+          <Text style={[styles.emptyText, { color: colors.subtle }]}>
+            No hay confesiones aún.
+          </Text>
+        </View>
+      ) : (
       <FlatList
         data={data}
         contentContainerStyle={styles.list}
@@ -291,13 +358,15 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
             item.carrera as any
           );
 
+          const facultadColor = getFacultadColor(item.carrera);
+
           return (
             <Pressable
               style={[
                 styles.card,
                 {
                   borderColor: isFromInterest
-                    ? colors.primary
+                    ? facultadColor
                     : colors.border,
                   backgroundColor: colors.surface,
                   borderWidth: isFromInterest ? 2 : 1,
@@ -323,7 +392,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
                       <Ionicons
                         name="star"
                         size={12}
-                        color={colors.primary}
+                        color={facultadColor}
                       />
                     )}
                   </View>
@@ -372,19 +441,31 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
                   <Ionicons
                     name="school-outline"
                     size={14}
-                    color={isFromInterest ? colors.primary : colors.subtle}
+                    color={isFromInterest ? facultadColor : colors.subtle}
                   />
                   <Text
                     style={[
                       styles.carrera,
                       {
                         color: isFromInterest
-                          ? colors.primary
+                          ? facultadColor
                           : colors.subtle,
                       },
                     ]}
                   >
                     {item.carrera}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.facultadBadge,
+                    {
+                      backgroundColor: getFacultadColor(item.carrera),
+                    },
+                  ]}
+                >
+                  <Text style={[styles.facultadBadgeText, { color: colors.surface }]}>
+                    {getFacultadGrande(item.carrera)}
                   </Text>
                 </View>
               </View>
@@ -461,6 +542,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
           );
         }}
       />
+      )}
 
     
       <CommentsModal
@@ -512,13 +594,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingVertical: 10,
   },
+  filterScroll: {
+    flexGrow: 0,
+    paddingVertical: 12,
+  },
+  filterScrollContent: {
+    paddingHorizontal: 16,
+    gap: 10,
+  },
   filterPill: {
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    height: 36,
+    justifyContent: "center",
   },
-  filterText: { fontSize: 13, fontWeight: "600" },
+  filterText: { 
+    fontSize: 13, 
+    fontWeight: "600",
+    textAlignVertical: "center",
+  },
   interestBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -553,6 +649,16 @@ const styles = StyleSheet.create({
   carrera: {
     fontSize: 12,
     fontWeight: "600",
+  },
+  facultadBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  facultadBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   meta: { fontSize: 12 },
   likeBtn: {
