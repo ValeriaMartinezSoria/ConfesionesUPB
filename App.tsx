@@ -39,7 +39,7 @@ export default function App() {
     "Derecho",
     "Medicina",
     "Arquitectura",
-    "Comunicación Social",
+    "Comunicación",
   ];
 
   const currentUser = useMemo<ModeratorInfo>(
@@ -53,6 +53,12 @@ export default function App() {
   useEffect(() => {
     loadConfesiones();
   }, [loadConfesiones]);
+  useEffect(() => {
+  const cargar = async () => {
+    await loadConfesiones();
+  };
+  cargar();
+}, []);
 
   const handleApprove = async (id: number) => {
     await approveConfesion(id, currentUser);

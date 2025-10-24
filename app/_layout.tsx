@@ -47,7 +47,7 @@ export default function RootLayout() {
     );
   }
 
-  // If user is authenticated but hasn't completed onboarding
+ 
   if (!hasCompletedOnboarding) {
     return (
       <>

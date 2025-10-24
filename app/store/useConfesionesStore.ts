@@ -17,12 +17,13 @@ import {
 import type { Confesion, Category } from "../data/seed";
 import type { Carrera } from "./useUserStore";
 
+
 export type ModerationLogEntry = {
   id?: string;
   action: "approved" | "rejected";
   timestamp: number;
-  user: { id?: string; name?: string | null };
-  reason?: string;
+  user: { id?: string; name?: string | null }
+  reason?: string | null;  
 };
 
 export type ModeratorInfo = { id?: string; name?: string | null };
@@ -62,6 +63,8 @@ export const useConfesionesStore = create<State & Actions>()(
       aprobadas: [],
       rechazadas: [],
       likedIds: [],
+
+ 
       addPendiente: async ({ content, category, carrera, image }) => {
         const id = Math.floor(Math.random() * 1_000_000) + 1000;
         const nueva: ConfesionModerada = {
@@ -89,13 +92,14 @@ export const useConfesionesStore = create<State & Actions>()(
           return false;
         }
       },
+
       approve: async (id, moderator) => {
         const { pendientes } = get();
         const c = pendientes.find((x) => x.id === id);
         if (!c) return;
 
         const approvedAt = Date.now();
-        const moderatorInfo: ModeratorInfo = moderator ?? {
+        const moderatorInfo = moderator ?? {
           id: auth.currentUser?.uid ?? "unknown",
           name: auth.currentUser?.displayName ?? "Moderador",
         };
@@ -103,10 +107,12 @@ export const useConfesionesStore = create<State & Actions>()(
           id: moderatorInfo.id ?? "unknown",
           name: moderatorInfo.name ?? "Moderador",
         };
+
         let logForState: ModerationLogEntry = {
           action: "approved",
           timestamp: approvedAt,
           user: userPayload,
+          reason: null, 
         };
 
         try {
@@ -119,7 +125,6 @@ export const useConfesionesStore = create<State & Actions>()(
               const confRef = doc(db, "confesiones", docSnap.id);
               const logRef = await addDoc(collection(confRef, "moderationLogs"), logForState);
               logForState = { ...logForState, id: logRef.id };
-              console.log(`[moderationLogs:${docSnap.id}]`, logForState);
               await updateDoc(confRef, {
                 status: "approved",
                 approvedAt,
@@ -151,17 +156,18 @@ export const useConfesionesStore = create<State & Actions>()(
             };
           });
         } catch (err) {
-          console.error("❌ Error al aprobar:", err);
+          console.error("Error al aprobar:", err);
         }
       },
+
       reject: async (id, reason, moderator) => {
         const { pendientes } = get();
         const c = pendientes.find((x) => x.id === id);
         if (!c) return;
 
         const rejectedAt = Date.now();
-        const cleanedReason = reason?.trim();
-        const moderatorInfo: ModeratorInfo = moderator ?? {
+        const cleanedReason = reason?.trim() || null; 
+        const moderatorInfo = moderator ?? {
           id: auth.currentUser?.uid ?? "unknown",
           name: auth.currentUser?.displayName ?? "Moderador",
         };
@@ -169,11 +175,12 @@ export const useConfesionesStore = create<State & Actions>()(
           id: moderatorInfo.id ?? "unknown",
           name: moderatorInfo.name ?? "Moderador",
         };
+
         let logForState: ModerationLogEntry = {
           action: "rejected",
           timestamp: rejectedAt,
           user: userPayload,
-          reason: cleanedReason,
+          reason: cleanedReason, 
         };
 
         try {
@@ -186,11 +193,11 @@ export const useConfesionesStore = create<State & Actions>()(
               const confRef = doc(db, "confesiones", docSnap.id);
               const logRef = await addDoc(collection(confRef, "moderationLogs"), logForState);
               logForState = { ...logForState, id: logRef.id };
-              console.log(`[moderationLogs:${docSnap.id}]`, logForState);
+
               await updateDoc(confRef, {
                 status: "rejected",
                 rejectedAt,
-                rejectionReason: cleanedReason ?? null,
+                rejectionReason: cleanedReason,
               });
             })
           );
@@ -204,7 +211,7 @@ export const useConfesionesStore = create<State & Actions>()(
               approvedAt: null,
               approvedBy: null,
               rejectedAt,
-              rejectionReason: cleanedReason ?? null,
+              rejectionReason: cleanedReason,
               moderationLogs: [...(c.moderationLogs ?? []), logForState],
             };
             return {
@@ -213,13 +220,15 @@ export const useConfesionesStore = create<State & Actions>()(
             };
           });
         } catch (err) {
-          console.error("❌ Error al rechazar:", err);
+          console.error(" Error al rechazar:", err);
         }
       },
+
+
       toggleLike: async (id) => {
         const user = auth.currentUser;
         if (!user) {
-          console.warn("⚠️ Usuario no autenticado");
+          console.warn("Usuario no autenticado");
           return;
         }
 
@@ -242,7 +251,6 @@ export const useConfesionesStore = create<State & Actions>()(
             }
           });
 
-          // Actualiza el estado local
           set((s) => ({
             likedIds: has
               ? s.likedIds.filter((x) => x !== id)
@@ -255,6 +263,8 @@ export const useConfesionesStore = create<State & Actions>()(
           console.error("❌ Error al cambiar like:", err);
         }
       },
+
+
       seed: (aprobadas, pendientes, rechazadas) =>
         set({
           aprobadas: aprobadas.map((c) => ({
@@ -273,10 +283,12 @@ export const useConfesionesStore = create<State & Actions>()(
             moderationLogs: c.moderationLogs ?? [],
           })),
         }),
+
       clearStorage: async () => {
         await AsyncStorage.removeItem("confesiones-storage");
         set({ pendientes: [], aprobadas: [], rechazadas: [], likedIds: [] });
       },
+
       getAprobadasSorted: (carrerasDeInteres) => {
         const { aprobadas } = get();
         if (carrerasDeInteres.length === 0)
@@ -296,6 +308,8 @@ export const useConfesionesStore = create<State & Actions>()(
 
         return [...confesionesDeInteres, ...confesionesOtras];
       },
+
+    
       loadConfesiones: async () => {
         try {
           const confesionesRef = collection(db, "confesiones");

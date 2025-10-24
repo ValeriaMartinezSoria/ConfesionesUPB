@@ -1,9 +1,22 @@
 import React from "react";
-import { View, Text, StyleSheet, Switch, Pressable, Alert, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Switch,
+  Pressable,
+  Alert,
+  ScrollView,
+  SafeAreaView,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import { useUIStore, ThemePref } from "../../store/uiStore";
-import { useUserStore, CARRERAS_DISPONIBLES, FACULTADES_DISPONIBLES } from "../../store/useUserStore";
+import {
+  useUserStore,
+  CARRERAS_DISPONIBLES,
+  FACULTADES_DISPONIBLES,
+} from "../../store/useUserStore";
 import { useRouter } from "expo-router";
 import type { Category } from "../../data/seed";
 
@@ -71,321 +84,253 @@ export default function Perfil() {
   const theme = useUIStore((s) => s.theme);
   const setTheme = useUIStore((s) => s.setTheme);
 
-  const carrerasDeInteres = useUserStore((s) => s.carrerasDeInteres);
-  const addCarreraDeInteres = useUserStore((s) => s.addCarreraDeInteres);
-  const removeCarreraDeInteres = useUserStore((s) => s.removeCarreraDeInteres);
-
-  const facultadesDeInteres = useUserStore((s) => s.facultadesDeInteres);
-  const addFacultadDeInteres = useUserStore((s) => s.addFacultadDeInteres);
-  const removeFacultadDeInteres = useUserStore((s) => s.removeFacultadDeInteres);
-
-  const preferences = useUserStore((s) => s.preferences);
-  const addCategoryOfInterest = useUserStore((s) => s.addCategoryOfInterest);
-  const removeCategoryOfInterest = useUserStore((s) => s.removeCategoryOfInterest);
-
-  const logout = useUserStore((s) => s.logout);
-  const user = useUserStore((s) => s.user);
+  const {
+    carrerasDeInteres,
+    addCarreraDeInteres,
+    removeCarreraDeInteres,
+    facultadesDeInteres,
+    addFacultadDeInteres,
+    removeFacultadDeInteres,
+    preferences,
+    addCategoryOfInterest,
+    removeCategoryOfInterest,
+    logout,
+    user,
+  } = useUserStore();
 
   const set = (t: ThemePref) => () => setTheme(t);
 
-  const handleCarreraPress = (carrera: string) => {
-    if (carrerasDeInteres.includes(carrera as any)) {
-      removeCarreraDeInteres(carrera as any);
-    } else {
-      addCarreraDeInteres(carrera as any);
-    }
-  };
-
-  const handleFacultadPress = (facultad: string) => {
-    if (facultadesDeInteres.includes(facultad as any)) {
-      removeFacultadDeInteres(facultad as any);
-    } else {
-      addFacultadDeInteres(facultad as any);
-    }
-  };
-
-  const handleCategoryPress = (category: Category) => {
-    if (preferences.categoriesOfInterest.includes(category)) {
-      removeCategoryOfInterest(category);
-    } else {
-      addCategoryOfInterest(category);
-    }
+  const toggleSelection = (
+    list: string[],
+    item: string,
+    add: (v: any) => void,
+    remove: (v: any) => void
+  ) => {
+    list.includes(item) ? remove(item) : add(item);
   };
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Cerrar sesión",
-      "¿Estás seguro de que deseas cerrar sesión?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Cerrar sesión",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-              router.replace("/auth");
-            } catch (error) {
-              console.error("Error al cerrar sesión:", error);
-              Alert.alert("Error", "No se pudo cerrar sesión. Intenta nuevamente.");
-            }
-          },
+    Alert.alert("Cerrar sesión", "¿Deseas cerrar sesión?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Cerrar sesión",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+            router.replace("/auth");
+          } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+            Alert.alert("Error", "No se pudo cerrar sesión. Intenta nuevamente.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
-    <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* User Info Card */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: 10 }]}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.userHeader}>
-          <View style={[styles.avatar, { backgroundColor: colors.primary + "20" }]}>
-            <Ionicons name="person" size={32} color={colors.primary} />
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={[styles.userEmail, { color: colors.text }]}>
-              {user?.email || "Usuario"}
-            </Text>
-            <Text style={[styles.userLabel, { color: colors.subtle }]}>
-              Cuenta activa
-            </Text>
+    
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.userHeader}>
+            <View style={[styles.avatar, { backgroundColor: colors.primary + "20" }]}>
+              <Ionicons name="person" size={32} color={colors.primary} />
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={[styles.userEmail, { color: colors.text }]}>
+                {user?.email || "Usuario"}
+              </Text>
+              <Text style={[styles.userLabel, { color: colors.subtle }]}>Cuenta activa</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Facultades de Interés */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-          <Ionicons name="school" size={20} color={colors.primary} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Facultades de Interés
+
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="school" size={20} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Facultades de Interés</Text>
+          </View>
+          <Text style={[styles.subtitle, { color: colors.subtle }]}>
+            Selecciona las facultades que te interesan
           </Text>
-        </View>
-        <Text style={[styles.subtitle, { color: colors.subtle }]}>
-          Selecciona las facultades que te interesan
-        </Text>
-        <View style={styles.chipsGrid}>
-          {FACULTADES_DISPONIBLES.map((facultad) => {
-            const isSelected = facultadesDeInteres.includes(facultad);
-            return (
+          <View style={styles.chipsGrid}>
+            {FACULTADES_DISPONIBLES.map((facultad) => (
               <Chip
                 key={facultad}
                 label={facultad}
-                selected={isSelected}
-                onPress={() => handleFacultadPress(facultad)}
+                selected={facultadesDeInteres.includes(facultad)}
+                onPress={() =>
+                  toggleSelection(
+                    facultadesDeInteres,
+                    facultad,
+                    addFacultadDeInteres,
+                    removeFacultadDeInteres
+                  )
+                }
                 color={colors.primary}
                 border={colors.border}
                 textColor={colors.text}
                 icon="school-outline"
               />
-            );
-          })}
-        </View>
-        {facultadesDeInteres.length > 0 && (
-          <View style={[styles.badge, { backgroundColor: colors.primary + "15" }]}>
-            <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
-            <Text style={[styles.badgeText, { color: colors.primary }]}>
-              {facultadesDeInteres.length} seleccionada{facultadesDeInteres.length !== 1 ? "s" : ""}
-            </Text>
+            ))}
           </View>
-        )}
-      </View>
-
-      {/* Carreras de Interés */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-          <Ionicons name="book" size={20} color={colors.primary} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Carreras de Interés
-          </Text>
         </View>
-        <Text style={[styles.subtitle, { color: colors.subtle }]}>
-          Las confesiones de estas carreras aparecerán primero en tu feed
-        </Text>
-        <View style={styles.chipsGrid}>
-          {CARRERAS_DISPONIBLES.map((carrera) => {
-            const isSelected = carrerasDeInteres.includes(carrera);
-            return (
+
+        
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="book" size={20} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Carreras de Interés</Text>
+          </View>
+          <Text style={[styles.subtitle, { color: colors.subtle }]}>
+            Las confesiones de estas carreras aparecerán primero en tu feed
+          </Text>
+          <View style={styles.chipsGrid}>
+            {CARRERAS_DISPONIBLES.map((carrera) => (
               <Chip
                 key={carrera}
                 label={carrera}
-                selected={isSelected}
-                onPress={() => handleCarreraPress(carrera)}
+                selected={carrerasDeInteres.includes(carrera)}
+                onPress={() =>
+                  toggleSelection(
+                    carrerasDeInteres,
+                    carrera,
+                    addCarreraDeInteres,
+                    removeCarreraDeInteres
+                  )
+                }
                 color={colors.primary}
                 border={colors.border}
                 textColor={colors.text}
                 icon="ribbon-outline"
               />
-            );
-          })}
-        </View>
-        {carrerasDeInteres.length > 0 && (
-          <View style={[styles.badge, { backgroundColor: colors.primary + "15" }]}>
-            <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
-            <Text style={[styles.badgeText, { color: colors.primary }]}>
-              {carrerasDeInteres.length} seleccionada{carrerasDeInteres.length !== 1 ? "s" : ""}
-            </Text>
+            ))}
           </View>
-        )}
-      </View>
-
-      {/* Categorías Preferidas */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-          <Ionicons name="grid" size={20} color={colors.primary} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Categorías Preferidas
-          </Text>
         </View>
-        <Text style={[styles.subtitle, { color: colors.subtle }]}>
-          Personaliza el tipo de contenido que prefieres ver
-        </Text>
-        <View style={styles.chipsGrid}>
-          {CATEGORIES_INFO.map((cat) => {
-            const isSelected = preferences.categoriesOfInterest.includes(cat.id);
-            return (
+
+       
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="grid" size={20} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Categorías Preferidas</Text>
+          </View>
+          <Text style={[styles.subtitle, { color: colors.subtle }]}>
+            Personaliza el tipo de contenido que prefieres ver
+          </Text>
+          <View style={styles.chipsGrid}>
+            {CATEGORIES_INFO.map((cat) => (
               <Chip
                 key={cat.id}
                 label={cat.name}
-                selected={isSelected}
-                onPress={() => handleCategoryPress(cat.id)}
+                selected={preferences.categoriesOfInterest.includes(cat.id)}
+                onPress={() =>
+                  toggleSelection(
+                    preferences.categoriesOfInterest,
+                    cat.id,
+                    addCategoryOfInterest,
+                    removeCategoryOfInterest
+                  )
+                }
                 color={colors.primary}
                 border={colors.border}
                 textColor={colors.text}
                 icon={cat.icon}
               />
-            );
-          })}
-        </View>
-      </View>
-
-      {/* Apariencia */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-          <Ionicons name="color-palette" size={20} color={colors.primary} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Apariencia
-          </Text>
-        </View>
-        <Text style={[styles.subtitle, { color: colors.subtle }]}>
-          Selecciona el tema de la aplicación
-        </Text>
-        <View style={styles.rowChips}>
-          <Chip
-            label="Claro"
-            selected={theme === "light"}
-            onPress={set("light")}
-            color={colors.primary}
-            border={colors.border}
-            textColor={colors.text}
-            icon="sunny-outline"
-          />
-          <Chip
-            label="Oscuro"
-            selected={theme === "dark"}
-            onPress={set("dark")}
-            color={colors.primary}
-            border={colors.border}
-            textColor={colors.text}
-            icon="moon-outline"
-          />
-          <Chip
-            label="Sistema"
-            selected={theme === "system"}
-            onPress={set("system")}
-            color={colors.primary}
-            border={colors.border}
-            textColor={colors.text}
-            icon="phone-portrait-outline"
-          />
-        </View>
-      </View>
-
-      {/* Admin Mode */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
-      >
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons name="shield-checkmark" size={20} color={colors.text} />
-            <Text style={[styles.label, { color: colors.text }]}>Modo Administrador</Text>
+            ))}
           </View>
-          <Switch
-            value={isAdmin}
-            onValueChange={toggleAdmin}
-            trackColor={{ false: colors.border, true: colors.primary + "60" }}
-            thumbColor={isAdmin ? colors.primary : colors.subtle}
-          />
         </View>
-        {isAdmin && (
-          <Pressable
-            style={[
-              styles.adminBtn,
-              { backgroundColor: colors.primary, borderColor: colors.primary },
-            ]}
-            onPress={() => router.push("/moderacion" as never)}
-            android_ripple={{ color: colors.primary + "80" }}
-          >
-            <Ionicons name="shield" size={18} color={colors.surface} />
-            <Text style={[styles.adminBtnText, { color: colors.surface }]}>
-              Abrir Panel de Moderación
-            </Text>
-          </Pressable>
-        )}
-      </View>
 
-      {/* Logout Button */}
-      <Pressable
-        style={[
-          styles.logoutBtn,
-          { borderColor: "#e74c3c", backgroundColor: "#e74c3c" },
-        ]}
-        onPress={handleLogout}
-        android_ripple={{ color: "#c0392b" }}
-      >
-        <Ionicons name="log-out" size={20} color="white" />
-        <Text style={styles.logoutText}>Cerrar Sesión</Text>
-      </Pressable>
+      
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="color-palette" size={20} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Apariencia</Text>
+          </View>
+          <View style={styles.rowChips}>
+            {["light", "dark", "system"].map((t) => (
+              <Chip
+                key={t}
+                label={
+                  t === "light" ? "Claro" : t === "dark" ? "Oscuro" : "Sistema"
+                }
+                selected={theme === t}
+                onPress={set(t as ThemePref)}
+                color={colors.primary}
+                border={colors.border}
+                textColor={colors.text}
+                icon={
+                  t === "light"
+                    ? "sunny-outline"
+                    : t === "dark"
+                    ? "moon-outline"
+                    : "phone-portrait-outline"
+                }
+              />
+            ))}
+          </View>
+        </View>
 
-      <View style={styles.bottomSpacer} />
-    </ScrollView>
+       
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="shield-checkmark" size={20} color={colors.text} />
+              <Text style={[styles.label, { color: colors.text }]}>Modo Administrador</Text>
+            </View>
+            <Switch
+              value={isAdmin}
+              onValueChange={toggleAdmin}
+              trackColor={{ false: colors.border, true: colors.primary + "60" }}
+              thumbColor={isAdmin ? colors.primary : colors.subtle}
+            />
+          </View>
+
+          {isAdmin && (
+            <Pressable
+              style={[
+                styles.adminBtn,
+                { backgroundColor: colors.primary, borderColor: colors.primary },
+              ]}
+              onPress={() => router.push("/moderacion" as never)}
+              android_ripple={{ color: colors.primary + "80" }}
+            >
+              <Ionicons name="shield" size={18} color={colors.surface} />
+              <Text style={[styles.adminBtnText, { color: colors.surface }]}>
+                Abrir Panel de Moderación
+              </Text>
+            </Pressable>
+          )}
+        </View>
+
+      
+        <Pressable
+          style={[
+            styles.logoutBtn,
+            { borderColor: "#e74c3c", backgroundColor: "#e74c3c" },
+          ]}
+          onPress={handleLogout}
+          android_ripple={{ color: "#c0392b" }}
+        >
+          <Ionicons name="log-out" size={20} color="white" />
+          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+        </Pressable>
+
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   screen: {
     flex: 1,
   },
@@ -459,20 +404,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
   },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-    marginTop: 4,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -495,7 +426,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 16,
     marginTop: 8,
   },
   adminBtnText: {
