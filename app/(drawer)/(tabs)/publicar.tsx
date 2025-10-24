@@ -38,11 +38,14 @@ export default function NuevaConfesion() {
     "Administración de Empresas",
     "Comunicación",
     "Derecho",
+    "Diseño Gráfico",
     "Economía",
+    "Enfermería",
     "Ingeniería Comercial",
     "Ingeniería Financiera",
     "Ingeniería de Sistemas",
-    "Diseño Gráfico",
+    "Psicología",
+    "Otra",
   ];
 
   const len = texto.trim().length;

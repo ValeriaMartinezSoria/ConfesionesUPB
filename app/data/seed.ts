@@ -30,7 +30,7 @@ export type Carrera =
   | "Enfermería"
   | "Contaduría Pública"
   | "Marketing"
-  | "Comunicación Social"
+  | "Comunicación"
   | "Trabajo Social";
 
 export const CARRERAS_DISPONIBLES: Carrera[] = [
@@ -46,7 +46,7 @@ export const CARRERAS_DISPONIBLES: Carrera[] = [
   "Enfermería",
   "Contaduría Pública",
   "Marketing",
-  "Comunicación Social",
+  "Comunicación",
   "Trabajo Social",
 ];
 
@@ -63,7 +63,7 @@ export const CARRERAS_POR_FACULTAD: Record<Facultad, Carrera[]> = {
   ],
   "Ciencias Sociales": [
     "Psicología",
-    "Comunicación Social",
+    "Comunicación",
     "Trabajo Social",
   ],
   "Diseño y Arquitectura": [

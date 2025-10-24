@@ -39,7 +39,7 @@ export default function App() {
     "Derecho",
     "Medicina",
     "Arquitectura",
-    "Comunicación Social",
+    "Comunicación ",
   ];
 
   const currentUser = useMemo<ModeratorInfo>(
