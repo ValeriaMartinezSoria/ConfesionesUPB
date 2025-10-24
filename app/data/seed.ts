@@ -54,6 +54,36 @@ export const CARRERAS_DISPONIBLES: Carrera[] = [
   "INGENIERÍA ELECTROMECÁNICA",
   "INGENIERÍA ELECTRÓNICA Y TELECOMUNICACIONES",
   "INGENIERÍA INDUSTRIAL Y DE SISTEMAS",
+  | "Administración de Empresas"
+  | "Ingeniería de Sistemas"
+  | "Diseño Gráfico"
+  | "Psicología"
+  | "Derecho"
+  | "Ingeniería Civil"
+  | "Ingeniería Industrial"
+  | "Arquitectura"
+  | "Medicina"
+  | "Enfermería"
+  | "Contaduría Pública"
+  | "Marketing"
+  | "Comunicación"
+  | "Trabajo Social";
+
+export const CARRERAS_DISPONIBLES: Carrera[] = [
+  "Administración de Empresas",
+  "Ingeniería de Sistemas",
+  "Diseño Gráfico",
+  "Psicología",
+  "Derecho",
+  "Ingeniería Civil",
+  "Ingeniería Industrial",
+  "Arquitectura",
+  "Medicina",
+  "Enfermería",
+  "Contaduría Pública",
+  "Marketing",
+  "Comunicación",
+  "Trabajo Social",
 ];
 
 export const CARRERAS_POR_FACULTAD: Record<Facultad, Carrera[]> = {
@@ -81,6 +111,26 @@ export const CARRERAS_POR_FACULTAD: Record<Facultad, Carrera[]> = {
     "INGENIERÍA ELECTROMECÁNICA",
     "INGENIERÍA ELECTRÓNICA Y TELECOMUNICACIONES",
     "INGENIERÍA INDUSTRIAL Y DE SISTEMAS",
+  "Economía y Negocios": [
+    "Administración de Empresas",
+    "Contaduría Pública",
+    "Marketing",
+  ],
+  "Ciencias Sociales": [
+    "Psicología",
+    "Comunicación",
+    "Trabajo Social",
+  ],
+  "Diseño y Arquitectura": [
+    "Diseño Gráfico",
+    "Arquitectura",
+  ],
+  "Ciencias de la Salud": [
+    "Medicina",
+    "Enfermería",
+  ],
+  "Derecho": [
+    "Derecho",
   ],
 };
 

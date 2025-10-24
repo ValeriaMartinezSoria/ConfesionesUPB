@@ -46,6 +46,19 @@ export default function NuevaConfesion() {
   const [uploading, setUploading] = useState(false);
 
   const carreras = useMemo(() => CARRERAS_DISPONIBLES, []);
+  const carreras = [
+    "Administración de Empresas",
+    "Comunicación",
+    "Derecho",
+    "Diseño Gráfico",
+    "Economía",
+    "Enfermería",
+    "Ingeniería Comercial",
+    "Ingeniería Financiera",
+    "Ingeniería de Sistemas",
+    "Psicología",
+    "Otra",
+  ];
 
   const len = texto.trim().length;
   const valid = len >= 10 && len <= 500;

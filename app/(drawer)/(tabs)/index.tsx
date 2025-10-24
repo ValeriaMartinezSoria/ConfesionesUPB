@@ -42,6 +42,7 @@ const cardShadow =
       shadowOffset: { width: 0, height: 4 },
     }
     : { elevation: 2 };
+    
 
 export default function ConfesionesList() {
   const { colors, effective } = useThemeColors();
@@ -53,7 +54,7 @@ export default function ConfesionesList() {
   const toggleLike = useConfesionesStore((s) => s.toggleLike);
   const likedIds = useConfesionesStore((s) => s.likedIds);
   const hasHydrated = useConfesionesStore.persist.hasHydrated();
-
+ 
   
 const [imageModalVisible, setImageModalVisible] = useState(false);
 const [selectedImage, setSelectedImage] = useState<any>(null);

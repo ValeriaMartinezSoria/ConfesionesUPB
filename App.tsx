@@ -29,6 +29,20 @@ export default function App() {
   const rejectConfesion = useConfesionesStore((s) => s.reject);
 
   const carreraOptions = useMemo(() => CARRERAS_DISPONIBLES, []);
+  // ✅ Ahora los useMemo pueden usar las variables anteriores
+  const approvedConfesiones = useMemo(() => getAprobadasSorted([]), [getAprobadasSorted]);
+
+  const categoryOptions: Category[] = ["academico", "amor", "confesion"];
+  
+  const carreraOptions = [
+    "Ingeniería de Sistemas",
+    "Administración de Empresas",
+    "Psicología",
+    "Derecho",
+    "Medicina",
+    "Arquitectura",
+    "Comunicación ",
+  ];
 
   const currentUser = useMemo<ModeratorInfo>(
     () =>
