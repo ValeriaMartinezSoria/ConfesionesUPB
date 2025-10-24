@@ -1,88 +1,48 @@
-import React, { useMemo, useState } from "react";
-import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { useConfesionesStore, type ModeratorInfo } from "./app/store/useConfesionesStore";
 
 type Role = "admin" | "persona";
-type ModerationLog = {
-  id: string;
-  action: "approved" | "rejected";
-  timestamp: string;
-  user: { id: string; name: string };
-  reason?: string;
-};
-type Confesion = {
-  id: string;
-  nexo: string;
-  content: string;
-  carrera?: string;
-  category: string;
-  likes: number;
-  status: "pending" | "approved" | "rejected";
-  approvedAt?: string | null;
-  approvedBy?: string | null;
-  rejectedAt?: string | null;
-  rejectionReason?: string | null;
-  moderationLogs?: ModerationLog[];
-};
 
-const initialConfesiones: Confesion[] = [
-  {
-    id: "1",
-    nexo: "Anónimo 01",
-    content: "Necesito aprobar cálculos pero estudio de madrugada.",
-    carrera: "Ingeniería",
-    category: "academico",
-    likes: 12,
-    status: "pending",
-    moderationLogs: [],
-  },
-  {
-    id: "2",
-    nexo: "Anónimo 02",
-    content: "Me gusta alguien del salón pero no sé cómo decirlo.",
-    carrera: "Psicología",
-    category: "amor",
-    likes: 34,
-    status: "approved",
-    approvedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    approvedBy: "Moderador General",
-    moderationLogs: [
-      {
-        id: "seed-log-1",
-        action: "approved",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-        user: { id: "admin01", name: "Moderador General" },
-      },
-    ],
-  },
-  {
-    id: "3",
-    nexo: "Anónimo 03",
-    content: "La cafetería debería abrir más tarde los fines de semana.",
-    carrera: "Administración",
-    category: "servicios",
-    likes: 7,
-    status: "rejected",
-    rejectedAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-    rejectionReason: "Duplicada.",
-    moderationLogs: [
-      {
-        id: "seed-log-2",
-        action: "rejected",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-        user: { id: "admin02", name: "Turno Nocturno" },
-        reason: "Duplicada.",
-      },
-    ],
-  },
-];
+// ✅ Tipos locales simplificados (las categorías se toman del store)
+type Category = "academico" | "amor" | "confesion";
 
 export default function App() {
   const [role, setRole] = useState<Role>("persona");
-  const [confesiones, setConfesiones] = useState<Confesion[]>(initialConfesiones);
-  const [pendingReasons, setPendingReasons] = useState<Record<string, string>>({});
+  const [pendingReasons, setPendingReasons] = useState<Partial<Record<number, string>>>({});
+  
+  // ✅ Estados del formulario
+  const [content, setContent] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<Category>("academico");
+  const [selectedCarrera, setSelectedCarrera] = useState<string>("Ingeniería de Sistemas");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentUser = useMemo(
+  // ✅ ORDEN CORRECTO: Hooks del store primero
+  const pendientes = useConfesionesStore((s) => s.pendientes);
+  const rechazadas = useConfesionesStore((s) => s.rechazadas);
+  const addPendiente = useConfesionesStore((s) => s.addPendiente);
+  const getAprobadasSorted = useConfesionesStore((s) => s.getAprobadasSorted);
+  const loadConfesiones = useConfesionesStore((s) => s.loadConfesiones);
+  const approveConfesion = useConfesionesStore((s) => s.approve);
+  const rejectConfesion = useConfesionesStore((s) => s.reject);
+
+  // ✅ Ahora los useMemo pueden usar las variables anteriores
+  const approvedConfesiones = useMemo(() => getAprobadasSorted([]), [getAprobadasSorted]);
+
+  const categoryOptions: Category[] = ["academico", "amor", "confesion"];
+  
+  const carreraOptions = [
+    "Ingeniería de Sistemas",
+    "Administración de Empresas",
+    "Psicología",
+    "Derecho",
+    "Medicina",
+    "Arquitectura",
+    "Comunicación Social",
+  ];
+
+  const currentUser = useMemo<ModeratorInfo>(
     () =>
       role === "admin"
         ? { id: "admin01", name: "Moderador General" }
@@ -90,71 +50,58 @@ export default function App() {
     [role]
   );
 
-  const pendingConfesiones = useMemo(() => confesiones.filter((c) => c.status === "pending"), [confesiones]);
-  const approvedConfesiones = useMemo(() => confesiones.filter((c) => c.status === "approved"), [confesiones]);
-  const rejectedConfesiones = useMemo(() => confesiones.filter((c) => c.status === "rejected"), [confesiones]);
+  useEffect(() => {
+    loadConfesiones();
+  }, [loadConfesiones]);
 
-  const handleApprove = (id: string) => {
-    const timestamp = new Date().toISOString();
-    const logEntry: ModerationLog = {
-      id: `log-${timestamp}`,
-      action: "approved",
-      timestamp,
-      user: currentUser,
-    };
-    console.log(`[moderationLogs:${id}]`, logEntry);
-    setConfesiones((prev) =>
-      prev.map((conf) =>
-        conf.id === id
-          ? {
-              ...conf,
-              status: "approved",
-              approvedAt: timestamp,
-              approvedBy: currentUser.name,
-              rejectedAt: null,
-              rejectionReason: null,
-              moderationLogs: [...(conf.moderationLogs ?? []), logEntry],
-            }
-          : conf
-      )
-    );
+  const handleApprove = async (id: number) => {
+    await approveConfesion(id, currentUser);
     setPendingReasons((prev) => ({ ...prev, [id]: "" }));
   };
 
-  const handleReject = (id: string) => {
-    const timestamp = new Date().toISOString();
-    const reason = pendingReasons[id]?.trim() || undefined;
-    const logEntry: ModerationLog = {
-      id: `log-${timestamp}`,
-      action: "rejected",
-      timestamp,
-      user: currentUser,
-      reason,
-    };
-    console.log(`[moderationLogs:${id}]`, logEntry);
-    setConfesiones((prev) =>
-      prev.map((conf) =>
-        conf.id === id
-          ? {
-              ...conf,
-              status: "rejected",
-              approvedAt: null,
-              approvedBy: null,
-              rejectedAt: timestamp,
-              rejectionReason: reason ?? null,
-              moderationLogs: [...(conf.moderationLogs ?? []), logEntry],
-            }
-          : conf
-      )
-    );
+  const handleReject = async (id: number) => {
+    const reason = pendingReasons[id]?.trim();
+    await rejectConfesion(id, reason, currentUser);
     setPendingReasons((prev) => ({ ...prev, [id]: "" }));
   };
+
+  // ✅ Handler del formulario
+  const handleSubmit = async () => {
+    const trimmedContent = content.trim();
+    if (trimmedContent.length < 10) {
+      Alert.alert("⚠️ Incompleto", "Escribe al menos 10 caracteres.");
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      const success = await addPendiente({
+        content: trimmedContent,
+        category: selectedCategory,
+        carrera: selectedCarrera,
+      });
+      
+      if (success) {
+        setContent("");
+        setSelectedCategory("academico");
+        setSelectedCarrera("Ingeniería de Sistemas");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isSubmitDisabled = isSubmitting || content.trim().length < 10;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
+      
+      {/* Barra de cambio de rol */}
       <View style={styles.roleBar}>
-        <Text style={styles.roleLabel}>Sesión actual: {role === "admin" ? "Administrador" : "Persona"}</Text>
+        <Text style={styles.roleLabel}>
+          Sesión actual: {role === "admin" ? "Administrador" : "Persona"}
+        </Text>
         <View style={styles.roleButtons}>
           {(["persona", "admin"] as Role[]).map((option) => (
             <TouchableOpacity
@@ -173,11 +120,12 @@ export default function App() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {role === "admin" ? (
           <>
+            {/* VISTA ADMIN */}
             <Text style={styles.sectionTitle}>Pendientes por aprobar</Text>
-            {pendingConfesiones.length === 0 ? (
+            {pendientes.length === 0 ? (
               <Text style={styles.emptyText}>No hay confesiones pendientes.</Text>
             ) : (
-              pendingConfesiones.map((conf) => (
+              pendientes.map((conf) => (
                 <View key={conf.id} style={styles.card}>
                   <Text style={styles.cardTitle}>{conf.nexo}</Text>
                   <Text style={styles.cardContent}>{conf.content}</Text>
@@ -190,22 +138,37 @@ export default function App() {
                     onChangeText={(text) => setPendingReasons((prev) => ({ ...prev, [conf.id]: text }))}
                   />
                   <View style={styles.actionsRow}>
-                    <TouchableOpacity style={[styles.actionButton, styles.approveButton]} onPress={() => handleApprove(conf.id)}>
+                    <TouchableOpacity 
+                      style={[styles.actionButton, styles.approveButton]} 
+                      onPress={() => handleApprove(conf.id)}
+                    >
                       <Text style={styles.actionText}>Aprobar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionButton, styles.rejectButton]} onPress={() => handleReject(conf.id)}>
+                    <TouchableOpacity 
+                      style={[styles.actionButton, styles.rejectButton]} 
+                      onPress={() => handleReject(conf.id)}
+                    >
                       <Text style={styles.actionText}>Rechazar</Text>
                     </TouchableOpacity>
                   </View>
+                  
+                  {/* Auditoría */}
                   {(conf.moderationLogs ?? []).length > 0 && (
                     <View style={styles.logContainer}>
                       <Text style={styles.logTitle}>Auditoría</Text>
                       {(conf.moderationLogs ?? []).map((log) => (
                         <View key={log.id} style={styles.logItem}>
-                          <Text style={[styles.logAction, log.action === "approved" ? styles.logApproved : styles.logRejected]}>
+                          <Text 
+                            style={[
+                              styles.logAction, 
+                              log.action === "approved" ? styles.logApproved : styles.logRejected
+                            ]}
+                          >
                             {log.action === "approved" ? "Aprobado" : "Rechazado"}
                           </Text>
-                          <Text style={styles.logMeta}>{new Date(log.timestamp).toLocaleString()}</Text>
+                          <Text style={styles.logMeta}>
+                            {new Date(log.timestamp).toLocaleString()}
+                          </Text>
                           <Text style={styles.logMeta}>{log.user.name}</Text>
                           {!!log.reason && <Text style={styles.logReason}>Motivo: {log.reason}</Text>}
                         </View>
@@ -215,25 +178,97 @@ export default function App() {
                 </View>
               ))
             )}
-
+            
             <Text style={styles.sectionTitle}>Rechazadas recientemente</Text>
-            {rejectedConfesiones.length === 0 ? (
+            {rechazadas.length === 0 ? (
               <Text style={styles.emptyText}>No hay confesiones rechazadas.</Text>
             ) : (
-              rejectedConfesiones.map((conf) => (
+              rechazadas.map((conf) => (
                 <View key={conf.id} style={styles.cardMuted}>
                   <Text style={styles.cardTitle}>{conf.nexo}</Text>
                   <Text style={styles.cardContent}>{conf.content}</Text>
                   <Text style={styles.cardMeta}>
                     Rechazada el {conf.rejectedAt ? new Date(conf.rejectedAt).toLocaleString() : "—"}
                   </Text>
-                  {!!conf.rejectionReason && <Text style={styles.cardMeta}>Motivo: {conf.rejectionReason}</Text>}
+                  {!!conf.rejectionReason && (
+                    <Text style={styles.cardMeta}>Motivo: {conf.rejectionReason}</Text>
+                  )}
                 </View>
               ))
             )}
           </>
         ) : (
           <>
+            {/* VISTA PERSONA */}
+            <Text style={styles.sectionTitle}>✍️ Enviar nueva confesión</Text>
+            <View style={styles.formCard}>
+              <TextInput
+                style={styles.formTextArea}
+                multiline
+                placeholder="Escribe tu confesión..."
+                placeholderTextColor="#8e8e93"
+                value={content}
+                onChangeText={setContent}
+                numberOfLines={4}
+              />
+              
+              <Text style={styles.sectionSubtitle}>Categoría</Text>
+              <View style={styles.categoryButtons}>
+                {categoryOptions.map((cat) => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[
+                      styles.categoryButton,
+                      selectedCategory === cat && styles.categoryButtonActive
+                    ]}
+                    onPress={() => setSelectedCategory(cat)}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryButtonText,
+                        selectedCategory === cat && styles.categoryButtonTextActive
+                      ]}
+                    >
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text style={styles.sectionSubtitle}>Carrera</Text>
+              <View style={styles.categoryButtons}>
+                {carreraOptions.map((car) => (
+                  <TouchableOpacity
+                    key={car}
+                    style={[
+                      styles.categoryButton,
+                      selectedCarrera === car && styles.categoryButtonActive
+                    ]}
+                    onPress={() => setSelectedCarrera(car)}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryButtonText,
+                        selectedCarrera === car && styles.categoryButtonTextActive
+                      ]}
+                    >
+                      {car}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <TouchableOpacity
+                style={[styles.submitButton, isSubmitDisabled && styles.submitButtonDisabled]}
+                onPress={handleSubmit}
+                disabled={isSubmitDisabled}
+              >
+                <Text style={styles.submitButtonText}>
+                  {isSubmitting ? "Enviando..." : "📤 Enviar Confesión"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <Text style={styles.sectionTitle}>Confesiones aprobadas</Text>
             {approvedConfesiones.length === 0 ? (
               <Text style={styles.emptyText}>No hay confesiones aprobadas aún.</Text>
@@ -267,7 +302,8 @@ const styles = StyleSheet.create({
   roleButtonText: { color: "#fff", textAlign: "center", fontWeight: "500" },
   roleButtonTextActive: { color: "#fff" },
   scrollContent: { padding: 16, gap: 16 },
-  sectionTitle: { color: "#f2f2f7", fontSize: 18, fontWeight: "700" },
+  sectionTitle: { color: "#f2f2f7", fontSize: 18, fontWeight: "700", marginTop: 8 },
+  sectionSubtitle: { color: "#f5f5f5", fontSize: 14, fontWeight: "600", marginTop: 8 },
   emptyText: { color: "#8e8e93" },
   card: { backgroundColor: "#1c1c1e", borderRadius: 12, padding: 16, gap: 8 },
   cardMuted: { backgroundColor: "#2c2c2e", borderRadius: 12, padding: 16, gap: 8 },
@@ -288,4 +324,38 @@ const styles = StyleSheet.create({
   logRejected: { color: "#ff453a" },
   logMeta: { color: "#8e8e93", fontSize: 12 },
   logReason: { color: "#ffd60a", fontSize: 12 },
+  formCard: { backgroundColor: "#1c1c1e", borderRadius: 12, padding: 16, gap: 14 },
+  formTextArea: { 
+    backgroundColor: "#2c2c2e", 
+    color: "#fff", 
+    borderRadius: 12, 
+    padding: 16, 
+    minHeight: 120, 
+    textAlignVertical: "top",
+    fontSize: 15,
+  },
+  categoryButtons: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  categoryButton: { 
+    backgroundColor: "#2c2c2e", 
+    paddingVertical: 10, 
+    paddingHorizontal: 16, 
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#3a3a3c",
+  },
+  categoryButtonActive: { 
+    backgroundColor: "#0a84ff",
+    borderColor: "#0a84ff",
+  },
+  categoryButtonText: { color: "#8e8e93", fontSize: 13, fontWeight: "600" },
+  categoryButtonTextActive: { color: "#fff" },
+  submitButton: { 
+    backgroundColor: "#0a84ff", 
+    borderRadius: 12, 
+    paddingVertical: 16, 
+    alignItems: "center",
+    marginTop: 8,
+  },
+  submitButtonDisabled: { opacity: 0.5 },
+  submitButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
 });

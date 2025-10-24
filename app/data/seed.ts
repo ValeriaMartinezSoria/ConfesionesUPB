@@ -1,4 +1,83 @@
-﻿export type Category = "amor" | "academico" | "random";
+﻿export type Category = "amor" | "academico" | "random" | "confesion";
+
+export type Facultad =
+  | "Ingeniería y Tecnología"
+  | "Economía y Negocios"
+  | "Ciencias Sociales"
+  | "Diseño y Arquitectura"
+  | "Ciencias de la Salud"
+  | "Derecho";
+
+export const FACULTADES_DISPONIBLES: Facultad[] = [
+  "Ingeniería y Tecnología",
+  "Economía y Negocios",
+  "Ciencias Sociales",
+  "Diseño y Arquitectura",
+  "Ciencias de la Salud",
+  "Derecho",
+];
+
+export type Carrera =
+  | "Administración de Empresas"
+  | "Ingeniería de Sistemas"
+  | "Diseño Gráfico"
+  | "Psicología"
+  | "Derecho"
+  | "Ingeniería Civil"
+  | "Ingeniería Industrial"
+  | "Arquitectura"
+  | "Medicina"
+  | "Enfermería"
+  | "Contaduría Pública"
+  | "Marketing"
+  | "Comunicación Social"
+  | "Trabajo Social";
+
+export const CARRERAS_DISPONIBLES: Carrera[] = [
+  "Administración de Empresas",
+  "Ingeniería de Sistemas",
+  "Diseño Gráfico",
+  "Psicología",
+  "Derecho",
+  "Ingeniería Civil",
+  "Ingeniería Industrial",
+  "Arquitectura",
+  "Medicina",
+  "Enfermería",
+  "Contaduría Pública",
+  "Marketing",
+  "Comunicación Social",
+  "Trabajo Social",
+];
+
+export const CARRERAS_POR_FACULTAD: Record<Facultad, Carrera[]> = {
+  "Ingeniería y Tecnología": [
+    "Ingeniería de Sistemas",
+    "Ingeniería Civil",
+    "Ingeniería Industrial",
+  ],
+  "Economía y Negocios": [
+    "Administración de Empresas",
+    "Contaduría Pública",
+    "Marketing",
+  ],
+  "Ciencias Sociales": [
+    "Psicología",
+    "Comunicación Social",
+    "Trabajo Social",
+  ],
+  "Diseño y Arquitectura": [
+    "Diseño Gráfico",
+    "Arquitectura",
+  ],
+  "Ciencias de la Salud": [
+    "Medicina",
+    "Enfermería",
+  ],
+  "Derecho": [
+    "Derecho",
+  ],
+};
 
 export type Confesion = {
   id: number;

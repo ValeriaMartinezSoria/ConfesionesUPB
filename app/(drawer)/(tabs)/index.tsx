@@ -105,6 +105,8 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
 
   const [selectedCategory, setSelectedCategory] =
     useState<"all" | Category>("all");
+  const [sortMode, setSortMode] = useState<"recent" | "trending">("recent");
+
   const categories: Array<"all" | Category> = [
     "all",
     "amor",
@@ -113,10 +115,38 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
   ];
 
   const data = useMemo<Confesion[]>(() => {
-    const sorted = getAprobadasSorted(carrerasDeInteres);
+    let sorted = getAprobadasSorted(carrerasDeInteres);
+
+    // Apply trending sort if selected
+    if (sortMode === "trending") {
+      const now = Date.now();
+      const last24h = now - 24 * 60 * 60 * 1000;
+      const last7days = now - 7 * 24 * 60 * 60 * 1000;
+
+      sorted = [...sorted].sort((a, b) => {
+        // Calculate trending score: likes + (comments * 2) + recency bonus
+        const aRecent = a.date > last24h;
+        const bRecent = b.date > last24h;
+        const aRecentWeek = a.date > last7days;
+        const bRecentWeek = b.date > last7days;
+
+        // Get comment counts
+        const aComments = commentsByConfession[a.id]?.length || 0;
+        const bComments = commentsByConfession[b.id]?.length || 0;
+
+        // Calculate trending score
+        const aScore = a.likes + (aComments * 2) + (aRecent ? 10 : aRecentWeek ? 5 : 0);
+        const bScore = b.likes + (bComments * 2) + (bRecent ? 10 : bRecentWeek ? 5 : 0);
+
+        // Sort by score descending
+        return bScore - aScore;
+      });
+    }
+
+    // Apply category filter
     if (selectedCategory === "all") return sorted;
     return sorted.filter((c) => c.category === selectedCategory);
-  }, [getAprobadasSorted, carrerasDeInteres, selectedCategory, aprobadas]);
+  }, [getAprobadasSorted, carrerasDeInteres, selectedCategory, aprobadas, sortMode, commentsByConfession]);
 
   const catColor = isLight ? colors.primary : colors.secondary;
   const likedColor = isLight ? colors.primary : colors.secondary;
@@ -160,6 +190,65 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
           </Text>
         </View>
       )}
+
+      {/* Sort Mode Toggle */}
+      <View style={styles.sortRow}>
+        <Pressable
+          onPress={() => setSortMode("recent")}
+          style={[
+            styles.sortBtn,
+            {
+              borderColor: colors.border,
+              backgroundColor:
+                sortMode === "recent" ? colors.primary : "transparent",
+            },
+          ]}
+        >
+          <Ionicons
+            name="time-outline"
+            size={16}
+            color={sortMode === "recent" ? colors.surface : colors.text}
+          />
+          <Text
+            style={[
+              styles.sortText,
+              {
+                color: sortMode === "recent" ? colors.surface : colors.text,
+              },
+            ]}
+          >
+            RECIENTES
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setSortMode("trending")}
+          style={[
+            styles.sortBtn,
+            {
+              borderColor: colors.border,
+              backgroundColor:
+                sortMode === "trending" ? colors.primary : "transparent",
+            },
+          ]}
+        >
+          <Ionicons
+            name="flame-outline"
+            size={16}
+            color={sortMode === "trending" ? colors.surface : colors.text}
+          />
+          <Text
+            style={[
+              styles.sortText,
+              {
+                color: sortMode === "trending" ? colors.surface : colors.text,
+              },
+            ]}
+          >
+            TENDENCIAS
+          </Text>
+        </Pressable>
+      </View>
 
       <View style={styles.filterRow}>
         {categories.map((cat) => (
@@ -279,21 +368,28 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
   </Pressable>
 )}
               <View style={styles.rowBetween}>
-                <Text
-                  style={[
-                    styles.carrera,
-                    {
-                      color: isFromInterest
-                        ? colors.primary
-                        : colors.subtle,
-                    },
-                  ]}
-                >
-                  📚 {item.carrera}
-                </Text>
+                <View style={styles.carreraContainer}>
+                  <Ionicons
+                    name="school-outline"
+                    size={14}
+                    color={isFromInterest ? colors.primary : colors.subtle}
+                  />
+                  <Text
+                    style={[
+                      styles.carrera,
+                      {
+                        color: isFromInterest
+                          ? colors.primary
+                          : colors.subtle,
+                      },
+                    ]}
+                  >
+                    {item.carrera}
+                  </Text>
+                </View>
               </View>
 
-        
+
               <View style={styles.rowBetween}>
                 <Text style={[styles.meta, { color: colors.subtle }]}>
                   {item.likes} {item.likes === 1 ? "like" : "likes"}
@@ -387,6 +483,30 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
 
 const styles = StyleSheet.create({
   list: { padding: 16, gap: 14 },
+  sortRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  sortBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minWidth: 140,
+    justifyContent: "center",
+  },
+  sortText: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
   filterRow: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -425,10 +545,14 @@ const styles = StyleSheet.create({
   nexo: { fontSize: 12, fontWeight: "600" },
   time: { fontSize: 11 },
   content: { fontSize: 16 },
+  carreraContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   carrera: {
     fontSize: 12,
     fontWeight: "600",
-    fontStyle: "italic",
   },
   meta: { fontSize: 12 },
   likeBtn: {

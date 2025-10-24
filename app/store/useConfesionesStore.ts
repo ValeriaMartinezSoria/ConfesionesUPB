@@ -1,6 +1,7 @@
 ﻿import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
 import { db, auth } from "../data/firebase";
 import {
   addDoc,
@@ -16,20 +17,42 @@ import {
 import type { Confesion, Category } from "../data/seed";
 import type { Carrera } from "./useUserStore";
 
+export type ModerationLogEntry = {
+  id?: string;
+  action: "approved" | "rejected";
+  timestamp: number;
+  user: { id?: string; name?: string | null };
+  reason?: string;
+};
+
+export type ModeratorInfo = { id?: string; name?: string | null };
+
+export type ConfesionModerada = Confesion & {
+  firebaseId?: string;
+  status?: "pending" | "approved" | "rejected";
+  approvedAt?: number | null;
+  approvedBy?: string | null;
+  rejectedAt?: number | null;
+  rejectionReason?: string | null;
+  moderationLogs?: ModerationLogEntry[];
+};
+
 type State = {
-  pendientes: Confesion[];
-  aprobadas: Confesion[];
+  pendientes: ConfesionModerada[];
+  aprobadas: ConfesionModerada[];
+  rechazadas: ConfesionModerada[];
   likedIds: number[];
 };
 
 type Actions = {
-  addPendiente: (c: { content: string; category: Category; carrera: string; image?: any }) => Promise<void>;
-  approve: (id: number) => Promise<void>;
-  reject: (id: number) => Promise<void>;
+  addPendiente: (c: { content: string; category: Category; carrera: string; image?: any }) => Promise<boolean>;
+  approve: (id: number, moderator?: ModeratorInfo) => Promise<void>;
+  reject: (id: number, reason?: string, moderator?: ModeratorInfo) => Promise<void>;
   toggleLike: (id: number) => Promise<void>;
-  seed: (aprobadas: Confesion[], pendientes: Confesion[]) => void;
+  seed: (aprobadas: ConfesionModerada[], pendientes: ConfesionModerada[], rechazadas?: ConfesionModerada[]) => void;
   clearStorage: () => Promise<void>;
-  getAprobadasSorted: (carrerasDeInteres: Carrera[]) => Confesion[];
+  getAprobadasSorted: (carrerasDeInteres: Carrera[]) => ConfesionModerada[];
+  loadConfesiones: () => Promise<void>;
 };
 
 export const useConfesionesStore = create<State & Actions>()(
@@ -37,12 +60,11 @@ export const useConfesionesStore = create<State & Actions>()(
     (set, get) => ({
       pendientes: [],
       aprobadas: [],
+      rechazadas: [],
       likedIds: [],
-
-      // ✅ Guardar confesión nueva como "pending" en Firestore
       addPendiente: async ({ content, category, carrera, image }) => {
         const id = Math.floor(Math.random() * 1_000_000) + 1000;
-        const nueva: Confesion = {
+        const nueva: ConfesionModerada = {
           id,
           content,
           category,
@@ -51,68 +73,149 @@ export const useConfesionesStore = create<State & Actions>()(
           likes: 0,
           image: image || null,
           nexo: "Anónimo",
+          status: "pending",
+          moderationLogs: [],
         };
 
         try {
-          await addDoc(collection(db, "confesiones"), {
-            ...nueva,
-            status: "pending",
-          });
-          set((s) => ({ pendientes: [nueva, ...s.pendientes] }));
+          const ref = await addDoc(collection(db, "confesiones"), nueva);
+          set((s) => ({
+            pendientes: [{ ...nueva, firebaseId: ref.id }, ...s.pendientes],
+          }));
+          Alert.alert("Enviado", "Tu confesión está en revisión");
+          return true;
         } catch (err) {
-          console.error("❌ Error al agregar confesión:", err);
+          console.error("Error al agregar confesión:", err);
+          return false;
         }
       },
-
-      // ✅ Aprobar confesión
-      approve: async (id) => {
+      approve: async (id, moderator) => {
         const { pendientes } = get();
         const c = pendientes.find((x) => x.id === id);
         if (!c) return;
 
+        const approvedAt = Date.now();
+        const moderatorInfo: ModeratorInfo = moderator ?? {
+          id: auth.currentUser?.uid ?? "unknown",
+          name: auth.currentUser?.displayName ?? "Moderador",
+        };
+        const userPayload = {
+          id: moderatorInfo.id ?? "unknown",
+          name: moderatorInfo.name ?? "Moderador",
+        };
+        let logForState: ModerationLogEntry = {
+          action: "approved",
+          timestamp: approvedAt,
+          user: userPayload,
+        };
+
         try {
           const q = query(collection(db, "confesiones"), where("id", "==", id));
           const snapshot = await getDocs(q);
-          snapshot.forEach(async (docSnap) => {
-            await updateDoc(doc(db, "confesiones", docSnap.id), {
-              status: "approved",
-              date: Date.now(),
-            });
-          });
+          if (snapshot.empty) return;
 
-          set((s) => ({
-            pendientes: s.pendientes.filter((x) => x.id !== id),
-            aprobadas: [{ ...c, date: Date.now() }, ...s.aprobadas],
-          }));
+          await Promise.all(
+            snapshot.docs.map(async (docSnap) => {
+              const confRef = doc(db, "confesiones", docSnap.id);
+              const logRef = await addDoc(collection(confRef, "moderationLogs"), logForState);
+              logForState = { ...logForState, id: logRef.id };
+              console.log(`[moderationLogs:${docSnap.id}]`, logForState);
+              await updateDoc(confRef, {
+                status: "approved",
+                approvedAt,
+                approvedBy: userPayload.name,
+                rejectedAt: null,
+                rejectionReason: null,
+                date: approvedAt,
+              });
+            })
+          );
+
+          set((s) => {
+            const firebaseId = snapshot.docs[0]?.id ?? c.firebaseId;
+            const updated = {
+              ...c,
+              firebaseId,
+              status: "approved" as const,
+              approvedAt,
+              approvedBy: userPayload.name ?? null,
+              rejectedAt: null,
+              rejectionReason: null,
+              date: approvedAt,
+              moderationLogs: [...(c.moderationLogs ?? []), logForState],
+            };
+            return {
+              pendientes: s.pendientes.filter((x) => x.id !== id),
+              aprobadas: [updated, ...s.aprobadas.filter((x) => x.id !== id)],
+              rechazadas: s.rechazadas.filter((x) => x.id !== id),
+            };
+          });
         } catch (err) {
           console.error("❌ Error al aprobar:", err);
         }
       },
-
-      // ✅ Rechazar confesión
-      reject: async (id) => {
+      reject: async (id, reason, moderator) => {
         const { pendientes } = get();
         const c = pendientes.find((x) => x.id === id);
         if (!c) return;
 
+        const rejectedAt = Date.now();
+        const cleanedReason = reason?.trim();
+        const moderatorInfo: ModeratorInfo = moderator ?? {
+          id: auth.currentUser?.uid ?? "unknown",
+          name: auth.currentUser?.displayName ?? "Moderador",
+        };
+        const userPayload = {
+          id: moderatorInfo.id ?? "unknown",
+          name: moderatorInfo.name ?? "Moderador",
+        };
+        let logForState: ModerationLogEntry = {
+          action: "rejected",
+          timestamp: rejectedAt,
+          user: userPayload,
+          reason: cleanedReason,
+        };
+
         try {
           const q = query(collection(db, "confesiones"), where("id", "==", id));
           const snapshot = await getDocs(q);
-          snapshot.forEach(async (docSnap) => {
-            await updateDoc(doc(db, "confesiones", docSnap.id), {
-              status: "rejected",
-            });
-          });
+          if (snapshot.empty) return;
 
-          set((s) => ({
-            pendientes: s.pendientes.filter((x) => x.id !== id),
-          }));
+          await Promise.all(
+            snapshot.docs.map(async (docSnap) => {
+              const confRef = doc(db, "confesiones", docSnap.id);
+              const logRef = await addDoc(collection(confRef, "moderationLogs"), logForState);
+              logForState = { ...logForState, id: logRef.id };
+              console.log(`[moderationLogs:${docSnap.id}]`, logForState);
+              await updateDoc(confRef, {
+                status: "rejected",
+                rejectedAt,
+                rejectionReason: cleanedReason ?? null,
+              });
+            })
+          );
+
+          set((s) => {
+            const firebaseId = snapshot.docs[0]?.id ?? c.firebaseId;
+            const updated = {
+              ...c,
+              firebaseId,
+              status: "rejected" as const,
+              approvedAt: null,
+              approvedBy: null,
+              rejectedAt,
+              rejectionReason: cleanedReason ?? null,
+              moderationLogs: [...(c.moderationLogs ?? []), logForState],
+            };
+            return {
+              pendientes: s.pendientes.filter((x) => x.id !== id),
+              rechazadas: [updated, ...s.rechazadas.filter((x) => x.id !== id)],
+            };
+          });
         } catch (err) {
           console.error("❌ Error al rechazar:", err);
         }
       },
-
-      // ✅ Likes en subcolección /likes/{userUID}
       toggleLike: async (id) => {
         const user = auth.currentUser;
         if (!user) {
@@ -152,14 +255,28 @@ export const useConfesionesStore = create<State & Actions>()(
           console.error("❌ Error al cambiar like:", err);
         }
       },
-
-      seed: (aprobadas, pendientes) => set({ aprobadas, pendientes }),
-
+      seed: (aprobadas, pendientes, rechazadas) =>
+        set({
+          aprobadas: aprobadas.map((c) => ({
+            ...c,
+            status: c.status ?? "approved",
+            moderationLogs: c.moderationLogs ?? [],
+          })),
+          pendientes: pendientes.map((c) => ({
+            ...c,
+            status: c.status ?? "pending",
+            moderationLogs: c.moderationLogs ?? [],
+          })),
+          rechazadas: (rechazadas ?? []).map((c) => ({
+            ...c,
+            status: c.status ?? "rejected",
+            moderationLogs: c.moderationLogs ?? [],
+          })),
+        }),
       clearStorage: async () => {
         await AsyncStorage.removeItem("confesiones-storage");
-        set({ pendientes: [], aprobadas: [], likedIds: [] });
+        set({ pendientes: [], aprobadas: [], rechazadas: [], likedIds: [] });
       },
-
       getAprobadasSorted: (carrerasDeInteres) => {
         const { aprobadas } = get();
         if (carrerasDeInteres.length === 0)
@@ -178,6 +295,34 @@ export const useConfesionesStore = create<State & Actions>()(
         confesionesOtras.sort((a, b) => b.date - a.date);
 
         return [...confesionesDeInteres, ...confesionesOtras];
+      },
+      loadConfesiones: async () => {
+        try {
+          const confesionesRef = collection(db, "confesiones");
+          const [pendingSnap, approvedSnap, rejectedSnap] = await Promise.all([
+            getDocs(query(confesionesRef, where("status", "==", "pending"))),
+            getDocs(query(confesionesRef, where("status", "==", "approved"))),
+            getDocs(query(confesionesRef, where("status", "==", "rejected"))),
+          ]);
+
+          const mapDocs = (snap: typeof pendingSnap) =>
+            snap.docs.map((docSnap) => {
+              const data = docSnap.data() as ConfesionModerada;
+              return {
+                ...data,
+                firebaseId: docSnap.id,
+                moderationLogs: data.moderationLogs ?? [],
+              };
+            });
+
+          set({
+            pendientes: mapDocs(pendingSnap),
+            aprobadas: mapDocs(approvedSnap).sort((a, b) => (b.date ?? 0) - (a.date ?? 0)),
+            rechazadas: mapDocs(rejectedSnap).sort((a, b) => (b.rejectedAt ?? 0) - (a.rejectedAt ?? 0)),
+          });
+        } catch (err) {
+          console.error("❌ Error al cargar confesiones:", err);
+        }
       },
     }),
     {

@@ -21,8 +21,7 @@ export default function Register() {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      Alert.alert("Cuenta creada", "Tu cuenta se creó correctamente");
-      router.replace("/"); 
+      // No redirect - let _layout.tsx handle navigation to onboarding
     } catch (error: any) {
       console.error("Error al registrar:", error);
       Alert.alert("Error", error.message);
