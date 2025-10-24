@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useConfesionesStore, type ModeratorInfo } from "./app/store/useConfesionesStore";
+import { CARRERAS_DISPONIBLES, type Category } from "./app/data/seed";
 
 type Role = "admin" | "persona";
 
 // ✅ Tipos locales simplificados (las categorías se toman del store)
-type Category = "academico" | "amor" | "confesion";
+const categoryOptions: Category[] = ["academico", "amor", "random", "carrera", "facultad"];
 
 export default function App() {
   const [role, setRole] = useState<Role>("persona");
@@ -15,7 +16,7 @@ export default function App() {
   // ✅ Estados del formulario
   const [content, setContent] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category>("academico");
-  const [selectedCarrera, setSelectedCarrera] = useState<string>("Ingeniería de Sistemas");
+  const [selectedCarrera, setSelectedCarrera] = useState<string>(CARRERAS_DISPONIBLES[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ✅ ORDEN CORRECTO: Hooks del store primero
@@ -27,6 +28,7 @@ export default function App() {
   const approveConfesion = useConfesionesStore((s) => s.approve);
   const rejectConfesion = useConfesionesStore((s) => s.reject);
 
+  const carreraOptions = useMemo(() => CARRERAS_DISPONIBLES, []);
   // ✅ Ahora los useMemo pueden usar las variables anteriores
   const approvedConfesiones = useMemo(() => getAprobadasSorted([]), [getAprobadasSorted]);
 
@@ -50,6 +52,9 @@ export default function App() {
     [role]
   );
 
+  // ✅ Ahora los useMemo pueden usar las variables anteriores
+  const approvedConfesiones = useMemo(() => getAprobadasSorted([]), [getAprobadasSorted]);
+
   useEffect(() => {
     loadConfesiones();
   }, [loadConfesiones]);
@@ -69,7 +74,7 @@ export default function App() {
   const handleSubmit = async () => {
     const trimmedContent = content.trim();
     if (trimmedContent.length < 10) {
-      Alert.alert("⚠️ Incompleto", "Escribe al menos 10 caracteres.");
+      Alert.alert("Incompleto", "Escribe al menos 10 caracteres.");
       return;
     }
     
@@ -84,7 +89,7 @@ export default function App() {
       if (success) {
         setContent("");
         setSelectedCategory("academico");
-        setSelectedCarrera("Ingeniería de Sistemas");
+        setSelectedCarrera(CARRERAS_DISPONIBLES[0]);
       }
     } finally {
       setIsSubmitting(false);
@@ -200,7 +205,7 @@ export default function App() {
         ) : (
           <>
             {/* VISTA PERSONA */}
-            <Text style={styles.sectionTitle}>✍️ Enviar nueva confesión</Text>
+            <Text style={styles.sectionTitle}>Enviar nueva confesión</Text>
             <View style={styles.formCard}>
               <TextInput
                 style={styles.formTextArea}
@@ -242,14 +247,14 @@ export default function App() {
                     key={car}
                     style={[
                       styles.categoryButton,
-                      selectedCarrera === car && styles.categoryButtonActive
+                      selectedCarrera === car && styles.categoryButtonActive,
                     ]}
                     onPress={() => setSelectedCarrera(car)}
                   >
                     <Text
                       style={[
                         styles.categoryButtonText,
-                        selectedCarrera === car && styles.categoryButtonTextActive
+                        selectedCarrera === car && styles.categoryButtonTextActive,
                       ]}
                     >
                       {car}
@@ -264,7 +269,7 @@ export default function App() {
                 disabled={isSubmitDisabled}
               >
                 <Text style={styles.submitButtonText}>
-                  {isSubmitting ? "Enviando..." : "📤 Enviar Confesión"}
+                  {isSubmitting ? "Enviando..." : "Enviar confesión"}
                 </Text>
               </TouchableOpacity>
             </View>
