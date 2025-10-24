@@ -4,10 +4,12 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../data/firebase";
 import { useRouter } from "expo-router";
 import { useThemeColors } from "../hooks/useThemeColors";
+import { useUserStore } from "../store/useUserStore";
 
 export default function Register() {
   const router = useRouter();
   const { colors } = useThemeColors();
+  const { setHasCompletedOnboarding, setUser } = useUserStore.getState();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -21,7 +23,11 @@ export default function Register() {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      // No redirect - let _layout.tsx handle navigation to onboarding
+      setUser(auth.currentUser);
+      setHasCompletedOnboarding(false);
+
+      
+      router.replace("/auth/onboarding");
     } catch (error: any) {
       console.error("Error al registrar:", error);
       Alert.alert("Error", error.message);

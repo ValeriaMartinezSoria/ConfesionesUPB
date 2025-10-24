@@ -94,7 +94,6 @@ export default function Moderacion() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      {/* Header Stats */}
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.statCard}>
           <View style={[styles.statIcon, { backgroundColor: "#f39c12" + "20" }]}>
@@ -116,7 +115,7 @@ export default function Moderacion() {
         </View>
       </View>
 
-      {/* Tab Navigation */}
+   
       <View style={[styles.tabs, { backgroundColor: colors.surface }]}>
         <Pressable
           onPress={() => setActiveTab("pending")}
@@ -168,7 +167,7 @@ export default function Moderacion() {
         </Pressable>
       </View>
 
-      {/* List */}
+    
       <FlatList
         data={currentData}
         keyExtractor={(x) => String(x.id)}
@@ -257,7 +256,7 @@ export default function Moderacion() {
         }}
       />
 
-      {/* Detail Modal */}
+    
       <Modal
         visible={!!selected}
         transparent

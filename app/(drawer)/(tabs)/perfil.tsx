@@ -141,7 +141,7 @@ export default function Perfil() {
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
-      {/* User Info Card */}
+      
       <View
         style={[
           styles.card,
@@ -163,7 +163,7 @@ export default function Perfil() {
         </View>
       </View>
 
-      {/* Facultades de Interés */}
+     
       <View
         style={[
           styles.card,
@@ -206,7 +206,7 @@ export default function Perfil() {
         )}
       </View>
 
-      {/* Carreras de Interés */}
+     
       <View
         style={[
           styles.card,
@@ -249,7 +249,7 @@ export default function Perfil() {
         )}
       </View>
 
-      {/* Categorías Preferidas */}
+     
       <View
         style={[
           styles.card,
@@ -331,7 +331,7 @@ export default function Perfil() {
         </View>
       </View>
 
-      {/* Admin Mode */}
+     
       <View
         style={[
           styles.card,
@@ -367,7 +367,7 @@ export default function Perfil() {
         )}
       </View>
 
-      {/* Logout Button */}
+    
       <Pressable
         style={[
           styles.logoutBtn,

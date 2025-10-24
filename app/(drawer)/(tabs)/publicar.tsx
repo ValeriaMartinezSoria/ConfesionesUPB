@@ -59,7 +59,6 @@ const pickImage = async () => {
   if (!permission.granted) return;
   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
   if (!result.canceled) {
-    // @ts-ignore
     const uri = (result as any).uri ?? (result as any).assets?.[0]?.uri;
     if (uri) setImageUri(uri);
   }

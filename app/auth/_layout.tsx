@@ -32,11 +32,11 @@ export default function AuthLayout() {
           headerBackVisible: true,
         }}
       />
-      <Stack.Screen
-        name="onboarding"
+     <Stack.Screen
+       name="onboarding"
         options={{
-          headerShown: false,
-        }}
+        headerShown: false,
+      }}
       />
     </Stack>
   );

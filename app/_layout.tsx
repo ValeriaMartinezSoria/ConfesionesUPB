@@ -47,7 +47,7 @@ export default function RootLayout() {
     );
   }
 
-  // If user is authenticated but hasn't completed onboarding
+ 
   if (!hasCompletedOnboarding) {
     return (
       <>
@@ -56,7 +56,7 @@ export default function RootLayout() {
           backgroundColor={colors.headerBg}
         />
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="auth/onboarding" />
+          <Stack.Screen name="auth" />
         </Stack>
       </>
     );

@@ -72,15 +72,14 @@ export default function CategoriesScreen() {
   const handleFinish = async () => {
     setLoading(true);
     try {
-      // Save preferences
       setPreferences({
         categoriesOfInterest: selected.length > 0 ? selected : [],
       });
 
-      // Mark onboarding as completed
+    
       setHasCompletedOnboarding(true);
 
-      // Navigate to main app
+     
       router.replace("/(drawer)/(tabs)");
     } catch (error) {
       console.error("Error completing onboarding:", error);

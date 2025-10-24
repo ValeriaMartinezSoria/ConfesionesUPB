@@ -151,7 +151,7 @@ export const useConfesionesStore = create<State & Actions>()(
             };
           });
         } catch (err) {
-          console.error("❌ Error al aprobar:", err);
+          console.error("Error al aprobar:", err);
         }
       },
       reject: async (id, reason, moderator) => {
@@ -213,13 +213,13 @@ export const useConfesionesStore = create<State & Actions>()(
             };
           });
         } catch (err) {
-          console.error("❌ Error al rechazar:", err);
+          console.error(" Error al rechazar:", err);
         }
       },
       toggleLike: async (id) => {
         const user = auth.currentUser;
         if (!user) {
-          console.warn("⚠️ Usuario no autenticado");
+          console.warn("Usuario no autenticado");
           return;
         }
 
@@ -242,7 +242,7 @@ export const useConfesionesStore = create<State & Actions>()(
             }
           });
 
-          // Actualiza el estado local
+         
           set((s) => ({
             likedIds: has
               ? s.likedIds.filter((x) => x !== id)
@@ -252,7 +252,7 @@ export const useConfesionesStore = create<State & Actions>()(
             ),
           }));
         } catch (err) {
-          console.error("❌ Error al cambiar like:", err);
+          console.error("Error al cambiar like:", err);
         }
       },
       seed: (aprobadas, pendientes, rechazadas) =>
@@ -321,7 +321,7 @@ export const useConfesionesStore = create<State & Actions>()(
             rechazadas: mapDocs(rejectedSnap).sort((a, b) => (b.rejectedAt ?? 0) - (a.rejectedAt ?? 0)),
           });
         } catch (err) {
-          console.error("❌ Error al cargar confesiones:", err);
+          console.error("Error al cargar confesiones:", err);
         }
       },
     }),

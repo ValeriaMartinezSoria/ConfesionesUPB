@@ -27,7 +27,7 @@ export default function CareersScreen() {
 
   const [selected, setSelected] = useState<Carrera[]>(carrerasDeInteres);
 
-  // Get recommended careers based on selected faculties
+ 
   const recommendedCareers = useMemo(() => {
     if (facultadesDeInteres.length === 0) return [];
     return facultadesDeInteres.flatMap((facultad) => CARRERAS_POR_FACULTAD[facultad]);

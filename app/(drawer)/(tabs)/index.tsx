@@ -117,33 +117,33 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
   const data = useMemo<Confesion[]>(() => {
     let sorted = getAprobadasSorted(carrerasDeInteres);
 
-    // Apply trending sort if selected
+    
     if (sortMode === "trending") {
       const now = Date.now();
       const last24h = now - 24 * 60 * 60 * 1000;
       const last7days = now - 7 * 24 * 60 * 60 * 1000;
 
       sorted = [...sorted].sort((a, b) => {
-        // Calculate trending score: likes + (comments * 2) + recency bonus
+       
         const aRecent = a.date > last24h;
         const bRecent = b.date > last24h;
         const aRecentWeek = a.date > last7days;
         const bRecentWeek = b.date > last7days;
 
-        // Get comment counts
+        
         const aComments = commentsByConfession[a.id]?.length || 0;
         const bComments = commentsByConfession[b.id]?.length || 0;
 
-        // Calculate trending score
+   
         const aScore = a.likes + (aComments * 2) + (aRecent ? 10 : aRecentWeek ? 5 : 0);
         const bScore = b.likes + (bComments * 2) + (bRecent ? 10 : bRecentWeek ? 5 : 0);
 
-        // Sort by score descending
+     
         return bScore - aScore;
       });
     }
 
-    // Apply category filter
+   
     if (selectedCategory === "all") return sorted;
     return sorted.filter((c) => c.category === selectedCategory);
   }, [getAprobadasSorted, carrerasDeInteres, selectedCategory, aprobadas, sortMode, commentsByConfession]);
@@ -191,7 +191,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
         </View>
       )}
 
-      {/* Sort Mode Toggle */}
+  
       <View style={styles.sortRow}>
         <Pressable
           onPress={() => setSortMode("recent")}
