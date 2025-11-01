@@ -5,20 +5,17 @@ import { useConfesionesStore, type ModeratorInfo } from "./app/store/useConfesio
 
 type Role = "admin" | "persona";
 
-// ✅ Tipos locales simplificados (las categorías se toman del store)
 type Category = "academico" | "amor" | "confesion";
 
 export default function App() {
   const [role, setRole] = useState<Role>("persona");
   const [pendingReasons, setPendingReasons] = useState<Partial<Record<number, string>>>({});
   
-  // ✅ Estados del formulario
   const [content, setContent] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category>("academico");
   const [selectedCarrera, setSelectedCarrera] = useState<string>("Ingeniería de Sistemas");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ✅ ORDEN CORRECTO: Hooks del store primero
   const pendientes = useConfesionesStore((s) => s.pendientes);
   const rechazadas = useConfesionesStore((s) => s.rechazadas);
   const addPendiente = useConfesionesStore((s) => s.addPendiente);
@@ -27,7 +24,6 @@ export default function App() {
   const approveConfesion = useConfesionesStore((s) => s.approve);
   const rejectConfesion = useConfesionesStore((s) => s.reject);
 
-  // ✅ Ahora los useMemo pueden usar las variables anteriores
   const approvedConfesiones = useMemo(() => getAprobadasSorted([]), [getAprobadasSorted]);
 
   const categoryOptions: Category[] = ["academico", "amor", "confesion"];
@@ -71,11 +67,10 @@ export default function App() {
     setPendingReasons((prev) => ({ ...prev, [id]: "" }));
   };
 
-  // ✅ Handler del formulario
   const handleSubmit = async () => {
     const trimmedContent = content.trim();
     if (trimmedContent.length < 10) {
-      Alert.alert("⚠️ Incompleto", "Escribe al menos 10 caracteres.");
+      Alert.alert(" Incompleto", "Escribe al menos 10 caracteres.");
       return;
     }
     
@@ -103,7 +98,6 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
       
-      {/* Barra de cambio de rol */}
       <View style={styles.roleBar}>
         <Text style={styles.roleLabel}>
           Sesión actual: {role === "admin" ? "Administrador" : "Persona"}
@@ -205,7 +199,6 @@ export default function App() {
           </>
         ) : (
           <>
-            {/* VISTA PERSONA */}
             <Text style={styles.sectionTitle}>✍️ Enviar nueva confesión</Text>
             <View style={styles.formCard}>
               <TextInput
