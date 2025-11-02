@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Modal,
   View,
@@ -12,6 +12,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
+import { Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { db } from "../data/firebase";
@@ -48,6 +49,22 @@ export default function CommentsModal({
   addComment,
 }: Props) {
   const { colors } = useThemeColors();
+  const overlayAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(overlayAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.spring(translateY, { toValue: 0, friction: 8, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(overlayAnim, { toValue: 0, duration: 160, useNativeDriver: true }),
+        Animated.timing(translateY, { toValue: 30, duration: 160, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
   const [likedComments, setLikedComments] = useState<Record<string, boolean>>({});
   const { user } = useUserStore(); 
 
@@ -112,12 +129,13 @@ export default function CommentsModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="none" transparent>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.overlay}
       >
-        <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
+        <Animated.View style={[styles.overlay, { backgroundColor: "rgba(0,0,0,0.5)", opacity: overlayAnim }]} />
+        <Animated.View style={[styles.modalContainer, { backgroundColor: colors.surface, transform: [{ translateY }] }]}>
        
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>Comentarios</Text>
@@ -210,7 +228,7 @@ export default function CommentsModal({
               </Pressable>
             </View>
           </View>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

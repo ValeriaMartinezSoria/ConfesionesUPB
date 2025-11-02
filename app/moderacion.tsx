@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,10 @@ import {
   Alert,
   ScrollView,
   SafeAreaView,
+  Platform,
 } from "react-native";
+import { Animated } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useConfesionesStore } from "./store/useConfesionesStore";
 import { useThemeColors } from "./hooks/useThemeColors";
@@ -93,9 +96,46 @@ export default function Moderacion() {
     }
   };
 
+  // Animated modal control: keep modal mounted while animating out
+  const [modalVisibleInternal, setModalVisibleInternal] = useState(false);
+  const overlayAnim = useRef(new Animated.Value(0)).current; // 0..1
+  const translateY = useRef(new Animated.Value(30)).current; // px
+  const scaleAnim = useRef(new Animated.Value(0.98)).current;
+
+  const approveBtnAnim = useRef(new Animated.Value(1)).current;
+  const rejectBtnAnim = useRef(new Animated.Value(1)).current;
+
+  const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    if (selected) {
+      setModalVisibleInternal(true);
+      Animated.parallel([
+        Animated.timing(overlayAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.spring(translateY, { toValue: 0, useNativeDriver: true, friction: 8 }),
+        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, friction: 8 }),
+      ]).start();
+    } else if (modalVisibleInternal) {
+      // animate out then hide
+      Animated.parallel([
+        Animated.timing(overlayAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(translateY, { toValue: 30, duration: 180, useNativeDriver: true }),
+        Animated.timing(scaleAnim, { toValue: 0.98, duration: 180, useNativeDriver: true }),
+      ]).start(() => setModalVisibleInternal(false));
+    }
+  }, [selected]);
+
+  const screenAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(screenAnim, { toValue: 1, duration: 380, useNativeDriver: true }).start();
+  }, []);
+
+  const screenTranslate = screenAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 0] });
+
   return (
-    
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}> 
+      <Animated.View style={{ flex: 1, transform: [{ translateY: screenTranslate }], opacity: screenAnim }}>
   
       <View
         style={[
@@ -311,165 +351,172 @@ export default function Moderacion() {
             </Pressable>
           );
         }}
-      />
+  />
 
   
-     <Modal
-  visible={!!selected}
-  transparent
-  animationType="fade"
-  onRequestClose={() => {
-    setSelected(null);
-    setRejectionReason("");
-  }}
->
-  <View
-    style={[
-      styles.modalOverlay,
-      { backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" },
-    ]}
-  >
-    <View
-      style={[
-        styles.modalBox,
-        {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          maxHeight: "85%", // 🔹 evita que se salga de la pantalla
-          width: "90%", // 🔹 margen horizontal
-          borderRadius: 16,
-          padding: 16,
-        },
-      ]}
-    >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {selected && (
-          <>
-            <View style={styles.modalHeader}>
-              <View
-                style={[
-                  styles.categoryBadge,
-                  {
-                    backgroundColor:
-                      getCategoryColor(selected.category) + "15",
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={getCategoryIcon(selected.category)}
-                  size={16}
-                  color={getCategoryColor(selected.category)}
-                />
-                <Text
-                  style={[
-                    styles.categoryText,
-                    { color: getCategoryColor(selected.category) },
-                  ]}
-                >
-                  {selected.category.charAt(0).toUpperCase() +
-                    selected.category.slice(1)}
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => {
-                  setSelected(null);
-                  setRejectionReason("");
-                }}
-              >
-                <Ionicons name="close" size={24} color={colors.text} />
-              </Pressable>
-            </View>
+      <Modal
+        visible={modalVisibleInternal}
+        transparent
+        onRequestClose={() => {
+          setSelected(null);
+          setRejectionReason("");
+        }}
+      >
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              paddingTop: insets.top + 12,
+              paddingHorizontal: 16,
+              paddingBottom: insets.bottom + 12,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              opacity: overlayAnim,
+            },
+          ]}
+        >
+          <Animated.View
+            style={[
+              styles.modalBox,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                maxHeight: "85%",
+                width: Platform.OS === "web" ? "60%" : "90%",
+                borderRadius: 16,
+                padding: 16,
+                transform: [{ translateY }, { scale: scaleAnim }],
+                opacity: overlayAnim,
+              },
+            ]}
+          >
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
+              {selected && (
+                <>
+                  <View style={styles.modalHeader}>
+                    <View
+                      style={[
+                        styles.categoryBadge,
+                        {
+                          backgroundColor: getCategoryColor(selected.category) + "15",
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={getCategoryIcon(selected.category)}
+                        size={16}
+                        color={getCategoryColor(selected.category)}
+                      />
+                      <Text
+                        style={[
+                          styles.categoryText,
+                          { color: getCategoryColor(selected.category) },
+                        ]}
+                      >
+                        {selected.category.charAt(0).toUpperCase() + selected.category.slice(1)}
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => {
+                        setSelected(null);
+                        setRejectionReason("");
+                      }}
+                    >
+                      <Ionicons name="close" size={24} color={colors.text} />
+                    </Pressable>
+                  </View>
 
-            <Text style={[styles.modalContent, { color: colors.text }]}>
-              {selected.content}
-            </Text>
+                  <Text style={[styles.modalContent, { color: colors.text }]}> 
+                    {selected.content}
+                  </Text>
 
-            {selected.image && (
-              <Image
-                source={selected.image}
-                style={{
-                  width: "100%",
-                  height: 200,
-                  borderRadius: 12,
-                  marginTop: 8,
-                }}
-                resizeMode="cover"
-              />
-            )}
-
-            <View style={styles.modalMeta}>
-              <View style={styles.metaRow}>
-                <Ionicons name="school" size={16} color={colors.subtle} />
-                <Text style={[styles.metaText, { color: colors.subtle }]}>
-                  {selected.carrera}
-                </Text>
-              </View>
-
-              <View style={styles.metaRow}>
-                <Ionicons name="time" size={16} color={colors.subtle} />
-                <Text style={[styles.metaText, { color: colors.subtle }]}>
-                  {timeAgo(selected.date)}
-                </Text>
-              </View>
-            </View>
-
-            {activeTab === "pending" && (
-              <>
-                <Text style={[styles.modalLabel, { color: colors.text }]}>
-                  Motivo de rechazo (opcional):
-                </Text>
-                <TextInput
-                  value={rejectionReason}
-                  onChangeText={setRejectionReason}
-                  placeholder="Ej: Contenido inapropiado, spam, etc."
-                  placeholderTextColor={colors.subtle}
-                  multiline
-                  style={[
-                    styles.reasonInput,
-                    {
-                      backgroundColor: colors.background,
-                      color: colors.text,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                />
-
-                <View style={styles.modalButtons}>
-                  <Pressable
-                    style={[styles.modalBtn, { backgroundColor: "#27ae60" }]}
-                    onPress={() => handleApprove(selected.id)}
-                  >
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={20}
-                      color="white"
+                  {selected.image && (
+                    <Image
+                      source={selected.image}
+                      style={{ width: "100%", height: 200, borderRadius: 12, marginTop: 8 }}
+                      resizeMode="cover"
                     />
-                    <Text style={styles.modalBtnText}>Aprobar</Text>
-                  </Pressable>
+                  )}
 
-                  <Pressable
-                    style={[styles.modalBtn, { backgroundColor: "#e74c3c" }]}
-                    onPress={() => handleReject(selected.id)}
-                  >
-                    <Ionicons
-                      name="close-circle"
-                      size={20}
-                      color="white"
-                    />
-                    <Text style={styles.modalBtnText}>Rechazar</Text>
-                  </Pressable>
-                </View>
-              </>
-            )}
-          </>
-        )}
-      </ScrollView>
-    </View>
-  </View>
-</Modal>
+                  <View style={styles.modalMeta}>
+                    <View style={styles.metaRow}>
+                      <Ionicons name="school" size={16} color={colors.subtle} />
+                      <Text style={[styles.metaText, { color: colors.subtle }]}> 
+                        {selected.carrera}
+                      </Text>
+                    </View>
 
-    </View>
-    
+                    <View style={styles.metaRow}>
+                      <Ionicons name="time" size={16} color={colors.subtle} />
+                      <Text style={[styles.metaText, { color: colors.subtle }]}> 
+                        {timeAgo(selected.date)}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {activeTab === "pending" && (
+                    <>
+                      <Text style={[styles.modalLabel, { color: colors.text }]}> 
+                        Motivo de rechazo (opcional):
+                      </Text>
+                      <TextInput
+                        value={rejectionReason}
+                        onChangeText={setRejectionReason}
+                        placeholder="Ej: Contenido inapropiado, spam, etc."
+                        placeholderTextColor={colors.subtle}
+                        multiline
+                        style={[
+                          styles.reasonInput,
+                          {
+                            backgroundColor: colors.background,
+                            color: colors.text,
+                            borderColor: colors.border,
+                          },
+                        ]}
+                      />
+
+                      <View style={styles.modalButtons}>
+                            <Pressable
+                              style={[styles.modalBtn, { backgroundColor: "#27ae60" }]}
+                              onPress={() => handleApprove(selected.id)}
+                              onPressIn={() => Animated.spring(approveBtnAnim, { toValue: 0.95, useNativeDriver: true }).start()}
+                              onPressOut={() => Animated.spring(approveBtnAnim, { toValue: 1, useNativeDriver: true }).start()}
+                            >
+                              <Animated.View style={{ transform: [{ scale: approveBtnAnim }], flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                <Ionicons name="checkmark-circle" size={20} color="white" />
+                                <Text style={styles.modalBtnText}>Aprobar</Text>
+                              </Animated.View>
+                            </Pressable>
+
+                            <Pressable
+                              style={[styles.modalBtn, { backgroundColor: "#e74c3c" }]}
+                              onPress={() => handleReject(selected.id)}
+                              onPressIn={() => Animated.spring(rejectBtnAnim, { toValue: 0.95, useNativeDriver: true }).start()}
+                              onPressOut={() => Animated.spring(rejectBtnAnim, { toValue: 1, useNativeDriver: true }).start()}
+                            >
+                              <Animated.View style={{ transform: [{ scale: rejectBtnAnim }], flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                <Ionicons name="close-circle" size={20} color="white" />
+                                <Text style={styles.modalBtnText}>Rechazar</Text>
+                              </Animated.View>
+                            </Pressable>
+                      </View>
+                    </>
+                  )}
+                </>
+              )}
+            </ScrollView>
+          </Animated.View>
+        </Animated.View>
+      </Modal>
+
+      </Animated.View>
+    </SafeAreaView>
+
   );
 }
 

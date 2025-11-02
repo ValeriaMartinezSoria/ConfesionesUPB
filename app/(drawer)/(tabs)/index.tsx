@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
+import { Animated } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useConfesionesStore } from "../../store/useConfesionesStore";
@@ -155,6 +156,200 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
     if (selectedCategory === "all") return sorted;
     return sorted.filter((c) => c.category === selectedCategory);
   }, [getAprobadasSorted, carrerasDeInteres, selectedCategory, selectedFacultad, aprobadas, sortMode, commentsByConfession]);
+
+  // track which items already ran entrance animation to avoid replay on updates
+  const mountedIds = useRef<Record<number, boolean>>({});
+
+  // Small helper component for each feed card so we can run hooks per-card
+  const FeedCard: React.FC<{ item: Confesion; index: number }> = ({ item, index }) => {
+    const anim = useRef(new Animated.Value(0)).current; // 0 -> 1
+  const likeAnim = useRef(new Animated.Value(1)).current;
+  const likesCountAnim = useRef(new Animated.Value(1)).current;
+  const commentAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+      // run entrance animation only once per item id
+      if (mountedIds.current[item.id]) {
+        // already animated before, set to final state
+        anim.setValue(1);
+        return;
+      }
+
+      Animated.sequence([
+        Animated.delay(Math.min(index * 60, 300)),
+        Animated.spring(anim, {
+          toValue: 1,
+          useNativeDriver: true,
+          friction: 7,
+          tension: 70,
+        }),
+      ]).start(() => {
+        mountedIds.current[item.id] = true;
+      });
+    }, []);
+
+    const handleLikePress = () => {
+      // animate icon only: scale up then back (snappier)
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(likeAnim, { toValue: 1.35, duration: 120, useNativeDriver: true }),
+          Animated.timing(likeAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(likesCountAnim, { toValue: 1.15, duration: 140, useNativeDriver: true }),
+          Animated.timing(likesCountAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+        ]),
+      ]).start();
+      // keep logic unchanged
+      toggleLike(item.id);
+    };
+
+    const liked = likedIds.includes(item.id);
+    const isFromInterest = carrerasDeInteres.includes(item.carrera as any);
+    const facultadColor = getFacultadColor(item.carrera);
+
+    const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
+    const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] });
+
+    return (
+      <Animated.View
+        style={[
+          styles.card,
+          {
+            transform: [{ translateY }, { scale }],
+            opacity: anim,
+            borderColor: isFromInterest ? facultadColor : colors.border,
+            backgroundColor: colors.surface,
+            borderWidth: isFromInterest ? 2 : 1,
+          },
+          cardShadow,
+        ]}
+      >
+        <Pressable
+          style={{ flex: 1 }}
+          onPress={() => router.push(`/(drawer)/(tabs)/confesion/${item.id}`)}
+        >
+          <View style={styles.rowBetween}>
+            <View style={{ flex: 1 }}>
+              <View style={styles.row}>
+                <Ionicons
+                  name="eye-off-outline"
+                  size={14}
+                  color={colors.subtle}
+                />
+                <Text style={[styles.nexo, { color: colors.subtle }]}>
+                  {item.nexo}
+                </Text>
+                {isFromInterest && (
+                  <Ionicons name="star" size={12} color={facultadColor} />
+                )}
+              </View>
+              <Text style={[styles.time, { color: colors.subtle }]}>
+                {timeAgo(item.date)}
+              </Text>
+            </View>
+            <View style={[styles.pill, { borderColor: catColor }]}> 
+              <Text style={[styles.pillText, { color: catColor }]}>
+                {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+              </Text>
+            </View>
+          </View>
+
+          <Text
+            style={[styles.content, { color: colors.text }]}
+            numberOfLines={3}
+          >
+            {item.content}
+          </Text>
+
+          {item.image && (
+            <Pressable
+              onPress={() => {
+                if (item.image) {
+                  setSelectedImage(item.image);
+                  setImageModalVisible(true);
+                }
+              }}
+            >
+              <Image
+                source={item.image}
+                style={{ width: "100%", height: 200, borderRadius: 12, marginTop: 8 }}
+                resizeMode="cover"
+              />
+            </Pressable>
+          )}
+
+          <View style={styles.rowBetween}>
+            <View style={styles.carreraContainer}>
+              <Ionicons
+                name="school-outline"
+                size={14}
+                color={isFromInterest ? facultadColor : colors.subtle}
+              />
+              <Text
+                style={[
+                  styles.carrera,
+                  {
+                    color: isFromInterest ? facultadColor : colors.subtle,
+                  },
+                ]}
+              >
+                {item.carrera}
+              </Text>
+            </View>
+            <View
+              style={[styles.facultadBadge, { backgroundColor: getFacultadColor(item.carrera) }]}
+            >
+              <Text style={[styles.facultadBadgeText, { color: colors.surface }]}> 
+                {getFacultadGrande(item.carrera)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Animated.Text style={[styles.meta, { color: colors.subtle, transform: [{ scale: likesCountAnim }] }]}> 
+              {item.likes} {item.likes === 1 ? "like" : "likes"}
+            </Animated.Text>
+
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Pressable hitSlop={8} onPress={(e:any)=>{ e.stopPropagation(); handleLikePress(); }}>
+                <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 10, borderColor: colors.border, backgroundColor: colors.surface }}>
+                  <Animated.View style={{ transform: [{ scale: likeAnim }], marginRight: 6 }}>
+                    <Ionicons
+                      name={liked ? "heart" : "heart-outline"}
+                      size={18}
+                      color={liked ? likedColor : colors.tabInactive}
+                    />
+                  </Animated.View>
+                  <Text style={[styles.likeText, { color: liked ? likedColor : colors.tabInactive }]}> {liked ? "Te gusta" : "Me gusta"} </Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                hitSlop={8}
+                style={[
+                  styles.likeBtn,
+                  {
+                    marginLeft: 10,
+                    borderColor: colors.border,
+                    backgroundColor: colors.surface,
+                  },
+                ]}
+                onPress={(e:any) => { e.stopPropagation(); setSelectedConfessionId(item.id); setOpenComments(true); }}
+                onPressIn={(e:any) => { e.stopPropagation(); Animated.spring(commentAnim, { toValue: 0.9, useNativeDriver: true, friction: 6 }).start(); }}
+                onPressOut={(e:any) => { e.stopPropagation(); Animated.spring(commentAnim, { toValue: 1, useNativeDriver: true, friction: 6 }).start(); }}
+              >
+                <Animated.View style={{ transform: [{ scale: commentAnim }], flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Ionicons name="chatbubble-outline" size={18} color={colors.tabInactive} />
+                  <Text style={[styles.likeText, { color: colors.tabInactive }]}>Comentar</Text>
+                </Animated.View>
+              </Pressable>
+            </View>
+          </View>
+        </Pressable>
+      </Animated.View>
+    );
+  };
 
   const catColor = isLight ? colors.primary : colors.secondary;
   const likedColor = isLight ? colors.primary : colors.secondary;
@@ -352,195 +547,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
         data={data}
         contentContainerStyle={styles.list}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => {
-          const liked = likedIds.includes(item.id);
-          const isFromInterest = carrerasDeInteres.includes(
-            item.carrera as any
-          );
-
-          const facultadColor = getFacultadColor(item.carrera);
-
-          return (
-            <Pressable
-              style={[
-                styles.card,
-                {
-                  borderColor: isFromInterest
-                    ? facultadColor
-                    : colors.border,
-                  backgroundColor: colors.surface,
-                  borderWidth: isFromInterest ? 2 : 1,
-                },
-                cardShadow,
-              ]}
-              onPress={() =>
-                router.push(`/(drawer)/(tabs)/confesion/${item.id}`)
-              }
-            >
-              <View style={styles.rowBetween}>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="eye-off-outline"
-                      size={14}
-                      color={colors.subtle}
-                    />
-                    <Text style={[styles.nexo, { color: colors.subtle }]}>
-                      {item.nexo}
-                    </Text>
-                    {isFromInterest && (
-                      <Ionicons
-                        name="star"
-                        size={12}
-                        color={facultadColor}
-                      />
-                    )}
-                  </View>
-                  <Text style={[styles.time, { color: colors.subtle }]}>
-                    {timeAgo(item.date)}
-                  </Text>
-                </View>
-                <View style={[styles.pill, { borderColor: catColor }]}>
-                  <Text style={[styles.pillText, { color: catColor }]}>
-                    {item.category.charAt(0).toUpperCase() +
-                      item.category.slice(1)}
-                  </Text>
-                </View>
-              </View>
-
-              <Text
-                style={[styles.content, { color: colors.text }]}
-                numberOfLines={3}
-              >
-                {item.content}
-              </Text>
-
-              {item.image && (
-  <Pressable
-    onPress={() => {
-       if (item.image) {
-    setSelectedImage(item.image);
-    setImageModalVisible(true);
-  }
-    }}
-  >
-    <Image
-      source={item.image}
-      style={{
-        width: "100%",
-        height: 200,
-        borderRadius: 12,
-        marginTop: 8,
-      }}
-      resizeMode="cover"
-    />
-  </Pressable>
-)}
-              <View style={styles.rowBetween}>
-                <View style={styles.carreraContainer}>
-                  <Ionicons
-                    name="school-outline"
-                    size={14}
-                    color={isFromInterest ? facultadColor : colors.subtle}
-                  />
-                  <Text
-                    style={[
-                      styles.carrera,
-                      {
-                        color: isFromInterest
-                          ? facultadColor
-                          : colors.subtle,
-                      },
-                    ]}
-                  >
-                    {item.carrera}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.facultadBadge,
-                    {
-                      backgroundColor: getFacultadColor(item.carrera),
-                    },
-                  ]}
-                >
-                  <Text style={[styles.facultadBadgeText, { color: colors.surface }]}>
-                    {getFacultadGrande(item.carrera)}
-                  </Text>
-                </View>
-              </View>
-
-
-              <View style={styles.rowBetween}>
-                <Text style={[styles.meta, { color: colors.subtle }]}>
-                  {item.likes} {item.likes === 1 ? "like" : "likes"}
-                </Text>
-
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  
-                  <Pressable
-                    hitSlop={8}
-                    style={[
-                      styles.likeBtn,
-                      {
-                        borderColor: colors.border,
-                        backgroundColor: colors.surface,
-                      },
-                    ]}
-                    onPress={() => toggleLike(item.id)}
-                  >
-                    <Ionicons
-                      name={liked ? "heart" : "heart-outline"}
-                      size={18}
-                      color={liked ? likedColor : colors.tabInactive}
-                    />
-                    <Text
-                      style={[
-                        styles.likeText,
-                        {
-                          color: liked ? likedColor : colors.tabInactive,
-                        },
-                      ]}
-                    >
-                      {liked ? "Te gusta" : "Me gusta"}
-                    </Text>
-                  </Pressable>
-
-                  
-                  <Pressable
-                    hitSlop={8}
-                    style={[
-                      styles.likeBtn,
-                      {
-                        marginLeft: 10,
-                        borderColor: colors.border,
-                        backgroundColor: colors.surface,
-                      },
-                    ]}
-                    onPress={() => {
-                      setSelectedConfessionId(item.id);
-                      setOpenComments(true);
-                    }}
-                  >
-                    <Ionicons
-                      name="chatbubble-outline"
-                      size={18}
-                      color={colors.tabInactive}
-                    />
-                    <Text
-                      style={[
-                        styles.likeText,
-                        { color: colors.tabInactive },
-                      ]}
-                    >
-                      Comentar
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            </Pressable>
-          );
-        }}
+        renderItem={({ item, index }) => <FeedCard item={item} index={index} />}
       />
       )}
 
@@ -548,7 +555,7 @@ const [selectedImage, setSelectedImage] = useState<any>(null);
       <CommentsModal
         visible={openComments}
         onClose={() => setOpenComments(false)}
-        comments={currentComments}
+        comments={currentComments.map((c: any) => ({ ...c, image: c.image ?? undefined }))}
         newComment={newComment}
         setNewComment={setNewComment}
         addComment={handleAddComment}

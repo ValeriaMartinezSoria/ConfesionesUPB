@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Modal, View, Image, Pressable, StyleSheet } from "react-native";
+import { Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 interface ImageModalProps {
@@ -9,25 +10,29 @@ interface ImageModalProps {
 }
 
 export default function ImageModal({ visible, image, onClose }: ImageModalProps) {
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.spring(anim, { toValue: 1, useNativeDriver: true, friction: 8 }).start();
+    } else {
+      Animated.timing(anim, { toValue: 0, duration: 140, useNativeDriver: true }).start();
+    }
+  }, [visible]);
+
+  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] });
+  const opacity = anim;
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Pressable style={styles.background} onPress={onClose} />
-        <View style={styles.modalContainer}>
-          <Image
-    source={typeof image === "string" ? { uri: image } : image}
-    style={styles.image}
-    resizeMode="contain"
-  />
+        <Animated.View style={[styles.modalContainer, { transform: [{ scale }], opacity }]}>
+          <Image source={typeof image === "string" ? { uri: image } : image} style={styles.image} resizeMode="contain" />
           <Pressable style={styles.closeBtn} onPress={onClose}>
             <Ionicons name="close" size={26} color="#fff" />
           </Pressable>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
