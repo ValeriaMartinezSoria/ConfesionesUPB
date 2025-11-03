@@ -9,13 +9,13 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColors } from "../../hooks/useThemeColors";
-import { useUserStore } from "../../store/useUserStore";
+import { useThemeColors } from "../../_hooks/useThemeColors";
+import { useUserStore } from "../../_store/useUserStore";
 import {
   CARRERAS_DISPONIBLES,
   CARRERAS_POR_FACULTAD,
   type Carrera,
-} from "../../data/seed";
+} from "../../_data/seed";
 
 export default function CareersScreen() {
   const { colors } = useThemeColors();

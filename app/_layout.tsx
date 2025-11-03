@@ -2,10 +2,11 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./data/firebase";
-import { useThemeColors } from "./hooks/useThemeColors";
-import { useUserStore } from "./store/useUserStore";
+import { auth } from "./_data/firebase";
+import { useThemeColors } from "./_hooks/useThemeColors";
+import { useUserStore } from "./_store/useUserStore";
 import SplashScreen from "./SplashScreen";
+import { AuthProvider } from "../src/auth/authProvider";
 
 export default function RootLayout() {
   const { colors, effective } = useThemeColors();
@@ -30,27 +31,24 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, []);
 
-
   if (loading || showSplash || !hasHydrated) {
     return <SplashScreen />;
   }
 
-
   if (!user) {
     return (
-      <>
+      <AuthProvider>
         <StatusBar style="light" />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="auth" />
         </Stack>
-      </>
+      </AuthProvider>
     );
   }
 
- 
   if (!hasCompletedOnboarding) {
     return (
-      <>
+      <AuthProvider>
         <StatusBar
           style={effective === "dark" ? "light" : "dark"}
           backgroundColor={colors.headerBg}
@@ -58,12 +56,12 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="auth/onboarding" />
         </Stack>
-      </>
+      </AuthProvider>
     );
   }
 
   return (
-    <>
+    <AuthProvider>
       <StatusBar
         style={effective === "dark" ? "light" : "dark"}
         backgroundColor={colors.headerBg}
@@ -74,10 +72,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.background },
         }}
       >
-
         <Stack.Screen name="(drawer)" />
-
-
         <Stack.Screen
           name="moderacion"
           options={{
@@ -90,7 +85,7 @@ export default function RootLayout() {
           }}
         />
       </Stack>
-    </>
+    </AuthProvider>
   );
 }
 

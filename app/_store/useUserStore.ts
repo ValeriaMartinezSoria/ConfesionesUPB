@@ -2,9 +2,9 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User, signOut } from "firebase/auth";
-import { auth } from "../data/firebase";
-import type { Carrera, Facultad, Category } from "../data/seed";
-import { CARRERAS_DISPONIBLES, FACULTADES_DISPONIBLES } from "../data/seed";
+import { auth } from "../_data/firebase";
+import type { Carrera, Facultad, Category } from "../_data/seed";
+import { CARRERAS_DISPONIBLES, FACULTADES_DISPONIBLES } from "../_data/seed";
 
 export { CARRERAS_DISPONIBLES, FACULTADES_DISPONIBLES };
 export type { Carrera, Facultad, Category };

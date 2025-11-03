@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, Platform, Image, ActivityIndicator, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColors } from "../../hooks/useThemeColors";
-import { useConfesionesStore } from "../../store/useConfesionesStore";
+import { useThemeColors } from "../../_hooks/useThemeColors";
+import { useConfesionesStore } from "../../_store/useConfesionesStore";
 import * as ImagePicker from "expo-image-picker";
-import { uploadToCloudinary } from "../../services/cloudinary";
-import type { Confesion } from "../../data/seed";
-import { CARRERAS_DISPONIBLES } from "../../data/seed";
+import { uploadToCloudinary } from "../../_services/cloudinary";
+import type { Confesion } from "../../_data/seed";
+import { CARRERAS_DISPONIBLES } from "../../_data/seed";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
 
 

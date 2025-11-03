@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../data/firebase";
+import { auth } from "../_data/firebase";
 import { useRouter } from "expo-router";
-import { useThemeColors } from "../hooks/useThemeColors";
+import { useThemeColors } from "../_hooks/useThemeColors";
 
 export default function Login() {
   const router = useRouter();

@@ -3,23 +3,24 @@ import {
   View,
   Text,
   StyleSheet,
-  Switch,
   Pressable,
   Alert,
   ScrollView,
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColors } from "../../hooks/useThemeColors";
-import { useUIStore, ThemePref } from "../../store/uiStore";
+import { useThemeColors } from "../../_hooks/useThemeColors";
+import { useUIStore, ThemePref } from "../../_store/uiStore";
 import {
   useUserStore,
   CARRERAS_DISPONIBLES,
   FACULTADES_DISPONIBLES,
-} from "../../store/useUserStore";
-import { useRouter } from "expo-router";
-import type { Category, FacultadGrande } from "../../data/seed";
-import { CARRERAS_FIA, CARRERAS_FACED } from "../../data/seed";
+} from "../../_store/useUserStore";
+import { useRouter, Link } from "expo-router";
+import type { Category, FacultadGrande } from "../../_data/seed";
+import { CARRERAS_FIA, CARRERAS_FACED } from "../../_data/seed";
+import { useAuth } from "../../../src/auth/authProvider";
+import { useAppProfile } from "../../_hooks/useAppProfile";
 
 const CATEGORIES_INFO: Array<{ id: Category; name: string; icon: any }> = [
   { id: "amor", name: "Amor", icon: "heart" },
@@ -80,10 +81,10 @@ function Chip({
 export default function Perfil() {
   const { colors } = useThemeColors();
   const router = useRouter();
-  const isAdmin = useUIStore((s) => s.isAdmin);
-  const toggleAdmin = useUIStore((s) => s.toggleAdmin);
   const theme = useUIStore((s) => s.theme);
   const setTheme = useUIStore((s) => s.setTheme);
+  const { profile } = useAppProfile();
+  const isAdmin = profile?.role === "admin";
 
   const {
     carrerasDeInteres,
@@ -150,6 +151,24 @@ export default function Perfil() {
             </View>
           </View>
         </View>
+
+        {isAdmin && (
+          <Link href="/(admin)/panel" asChild>
+            <Pressable
+              style={[
+                styles.adminBtn,
+                { backgroundColor: colors.buttonBg, borderColor: colors.buttonBg },
+              ]}
+              android_ripple={{ color: colors.border }}
+              accessibilityRole="button"
+              accessibilityLabel="Ver Panel de Administrador"
+            >
+              <Ionicons name="shield-checkmark" size={20} color={colors.buttonText} />
+              <Text style={[styles.adminBtnText, { color: colors.buttonText }]}>Ver Panel de Administrador</Text>
+              <Ionicons name="chevron-forward" size={20} color={colors.buttonText} />
+            </Pressable>
+          </Link>
+        )}
 
 
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -296,28 +315,13 @@ export default function Perfil() {
           </View>
         </View>
 
-       
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Ionicons name="shield-checkmark" size={20} color={colors.text} />
-              <Text style={[styles.label, { color: colors.text }]}>Modo Administrador</Text>
-            </View>
-            <Switch
-              value={isAdmin}
-              onValueChange={toggleAdmin}
-              trackColor={{ false: colors.border, true: colors.primary + "60" }}
-              thumbColor={isAdmin ? colors.primary : colors.subtle}
-            />
-          </View>
-
-          {isAdmin && (
+        {false && (
+          <Link href="/(admin)/panel" asChild>
             <Pressable
               style={[
                 styles.adminBtn,
                 { backgroundColor: colors.primary, borderColor: colors.primary },
               ]}
-              onPress={() => router.push("/moderacion" as never)}
               android_ripple={{ color: colors.primary + "80" }}
             >
               <Ionicons name="shield" size={18} color={colors.surface} />
@@ -325,10 +329,9 @@ export default function Perfil() {
                 Abrir Panel de Moderación
               </Text>
             </Pressable>
-          )}
-        </View>
+          </Link>
+        )}
 
-      
         <Pressable
           style={[
             styles.logoutBtn,
@@ -424,33 +427,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
   },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  rowLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
   adminBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 10,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingVertical: 12,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     marginTop: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
   },
   adminBtnText: {
     fontWeight: "700",
-    fontSize: 14,
+    fontSize: 16,
   },
   logoutBtn: {
     flexDirection: "row",

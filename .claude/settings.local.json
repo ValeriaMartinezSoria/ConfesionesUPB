@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx expo install:*)"
+      "Bash(npx expo install:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(test:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

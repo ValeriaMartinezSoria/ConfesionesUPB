@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Text, View } from "react-native";
-import { auth } from "../data/firebase";
+import { auth } from "../_data/firebase";
 
 export default function TestFirebase() {
   useEffect(() => {

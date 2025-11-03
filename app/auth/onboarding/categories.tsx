@@ -10,9 +10,9 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColors } from "../../hooks/useThemeColors";
-import { useUserStore } from "../../store/useUserStore";
-import type { Category } from "../../data/seed";
+import { useThemeColors } from "../../_hooks/useThemeColors";
+import { useUserStore } from "../../_store/useUserStore";
+import type { Category } from "../../_data/seed";
 
 const CATEGORIES_INFO: Array<{
   id: Category;

@@ -2,7 +2,7 @@
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
-import { db, auth } from "../data/firebase";
+import { db, auth } from "../_data/firebase";
 import {
   addDoc,
   collection,
@@ -14,7 +14,7 @@ import {
   where,
   setDoc,
 } from "firebase/firestore";
-import type { Confesion, Category } from "../data/seed";
+import type { Confesion, Category } from "../_data/seed";
 import type { Carrera } from "./useUserStore";
 
 

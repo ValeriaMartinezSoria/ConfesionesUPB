@@ -1,5 +1,5 @@
 ﻿import { useColorScheme } from "react-native";
-import { useUIStore } from "../store/uiStore";
+import { useUIStore } from "../_store/uiStore";
 
 export type Palette = {
   background: string;

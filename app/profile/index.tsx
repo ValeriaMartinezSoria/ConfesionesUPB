@@ -1,8 +1,8 @@
 ﻿import React from "react";
 import { Stack } from "expo-router";
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import { useThemeColors } from "../hooks/useThemeColors";
-import { useAppearance, type Mode } from "../store/useAppearance";
+import { useThemeColors } from "../_hooks/useThemeColors";
+import { useAppearance, type Mode } from "../_store/useAppearance";
 
 type ThemeColors = ReturnType<typeof useThemeColors>["colors"];
 

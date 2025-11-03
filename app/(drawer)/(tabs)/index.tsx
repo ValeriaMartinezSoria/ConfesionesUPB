@@ -12,16 +12,16 @@ import {
 import { Animated } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useConfesionesStore } from "../../store/useConfesionesStore";
-import { useCommentsStore } from "../../store/useCommentsStore";
-import { useUserStore } from "../../store/useUserStore";
-import { useThemeColors } from "../../hooks/useThemeColors";
-import type { Confesion, Category } from "../../data/seed";
-import { getFacultadGrande, type FacultadGrande } from "../../data/seed";
+import { useConfesionesStore } from "../../_store/useConfesionesStore";
+import { useCommentsStore } from "../../_store/useCommentsStore";
+import { useUserStore } from "../../_store/useUserStore";
+import { useThemeColors } from "../../_hooks/useThemeColors";
+import type { Confesion, Category } from "../../_data/seed";
+import { getFacultadGrande, type FacultadGrande } from "../../_data/seed";
 import { Image } from "react-native"; 
-import CommentsModal from "../../components/CommentsModal";
-import ImageModal from "../../components/ImageModal"; 
-import { subirSeed } from "../../data/seedConfesiones";
+import CommentsModal from "../../_components/CommentsModal";
+import ImageModal from "../../_components/ImageModal"; 
+import { subirSeed } from "../../_data/seedConfesiones";
 
 
 

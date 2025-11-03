@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColors } from "../../hooks/useThemeColors";
-import { useUserStore } from "../../store/useUserStore";
-import { FACULTADES_DISPONIBLES, type Facultad } from "../../data/seed";
+import { useThemeColors } from "../../_hooks/useThemeColors";
+import { useUserStore } from "../../_store/useUserStore";
+import { FACULTADES_DISPONIBLES, type Facultad } from "../../_data/seed";
 
 export default function FacultiesScreen() {
   const { colors } = useThemeColors();

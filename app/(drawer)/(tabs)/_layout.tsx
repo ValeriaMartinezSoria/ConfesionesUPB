@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColors } from "../../hooks/useThemeColors";
+import { useThemeColors } from "../../_hooks/useThemeColors";
 
 export default function TabsLayout() {
   const { colors } = useThemeColors();

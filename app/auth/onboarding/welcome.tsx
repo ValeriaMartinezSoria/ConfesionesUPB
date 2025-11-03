@@ -8,8 +8,8 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColors } from "../../hooks/useThemeColors";
-import { useUserStore } from "../../store/useUserStore";
+import { useThemeColors } from "../../_hooks/useThemeColors";
+import { useUserStore } from "../../_store/useUserStore";
 
 export default function WelcomeScreen() {
   const { colors } = useThemeColors();

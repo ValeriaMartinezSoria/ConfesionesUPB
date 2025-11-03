@@ -12,7 +12,7 @@ import MapView, { Marker, Callout, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { MAP_POINTS, MapPoint } from './points';
-import { useUserStore } from '../../../app/store/useUserStore';
+import { useUserStore } from '../../../app/_store/useUserStore';
 
 // Región por defecto en La Paz como fallback
 const DEFAULT_REGION: Region = {

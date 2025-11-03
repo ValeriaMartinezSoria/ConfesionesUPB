@@ -14,12 +14,12 @@ import {
 } from "react-native";
 import { Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColors } from "../hooks/useThemeColors";
-import { db } from "../data/firebase";
+import { useThemeColors } from "../_hooks/useThemeColors";
+import { db } from "../_data/firebase";
 import { doc, updateDoc, increment } from "firebase/firestore";
-import { useUserStore } from "../store/useUserStore"; 
+import { useUserStore } from "../_store/useUserStore"; 
 import * as ImagePicker from "expo-image-picker";
-import { uploadToCloudinary } from "../services/cloudinary";
+import { uploadToCloudinary } from "../_services/cloudinary";
 
 type Comment = {
   id: string;

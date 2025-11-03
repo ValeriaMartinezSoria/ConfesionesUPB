@@ -16,9 +16,9 @@ import {
 import { Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useConfesionesStore } from "./store/useConfesionesStore";
-import { useThemeColors } from "./hooks/useThemeColors";
-import type { Confesion } from "./data/seed";
+import { useConfesionesStore } from "./_store/useConfesionesStore";
+import { useThemeColors } from "./_hooks/useThemeColors";
+import type { Confesion } from "./_data/seed";
 
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;
