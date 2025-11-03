@@ -30,6 +30,10 @@ export default function TabsLayout() {
         name="perfil"
         options={{ title: "Perfil", tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} /> }}
       />
+      <Tabs.Screen
+        name="maps"
+        options={{ title: "Mapas", tabBarIcon: ({ color, size }) => <Ionicons name="map-outline" size={size} color={color} /> }}
+      />
       <Tabs.Screen name="confesion/[id]" options={{ href: null }} />
     </Tabs>
   );

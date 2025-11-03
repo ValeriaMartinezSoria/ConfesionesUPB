@@ -15,7 +15,10 @@
     },
     "ios": {
       "bundleIdentifier": "com.upb.confessapp",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para centrar el mapa cerca de ti y mostrarte puntos de interés."
+      }
     },
     "android": {
       "package": "com.upb.confessapp",
@@ -24,7 +27,11 @@
         "backgroundColor": "#ECEEF1"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
