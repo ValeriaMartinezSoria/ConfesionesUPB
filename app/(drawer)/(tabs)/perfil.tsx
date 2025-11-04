@@ -157,15 +157,23 @@ export default function Perfil() {
             <Pressable
               style={[
                 styles.adminBtn,
-                { backgroundColor: colors.buttonBg, borderColor: colors.buttonBg },
+                {
+                  backgroundColor: colors.primary + "15",
+                  borderColor: colors.primary,
+                },
               ]}
-              android_ripple={{ color: colors.border }}
+              android_ripple={{ color: colors.primary + "30" }}
               accessibilityRole="button"
-              accessibilityLabel="Ver Panel de Administrador"
+              accessibilityLabel="Abrir Panel de Moderación"
             >
-              <Ionicons name="shield-checkmark" size={20} color={colors.buttonText} />
-              <Text style={[styles.adminBtnText, { color: colors.buttonText }]}>Ver Panel de Administrador</Text>
-              <Ionicons name="chevron-forward" size={20} color={colors.buttonText} />
+              <View style={[styles.adminBtnIconContainer, { backgroundColor: colors.primary + "20" }]}>
+                <Ionicons name="shield-checkmark" size={24} color={colors.primary} />
+              </View>
+              <View style={styles.adminBtnContent}>
+                <Text style={[styles.adminBtnTitle, { color: colors.primary }]}>Panel de Moderación</Text>
+                <Text style={[styles.adminBtnSubtitle, { color: colors.text }]}>Gestionar confesiones y usuarios</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.primary} />
             </Pressable>
           </Link>
         )}
@@ -315,23 +323,6 @@ export default function Perfil() {
           </View>
         </View>
 
-        {false && (
-          <Link href="/(admin)/panel" asChild>
-            <Pressable
-              style={[
-                styles.adminBtn,
-                { backgroundColor: colors.primary, borderColor: colors.primary },
-              ]}
-              android_ripple={{ color: colors.primary + "80" }}
-            >
-              <Ionicons name="shield" size={18} color={colors.surface} />
-              <Text style={[styles.adminBtnText, { color: colors.surface }]}>
-                Abrir Panel de Moderación
-              </Text>
-            </Pressable>
-          </Link>
-        )}
-
         <Pressable
           style={[
             styles.logoutBtn,
@@ -430,21 +421,32 @@ const styles = StyleSheet.create({
   adminBtn: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    borderWidth: 1,
+    gap: 14,
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 16,
-    marginTop: 8,
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
+    borderWidth: 2,
   },
-  adminBtnText: {
+  adminBtnIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  adminBtnContent: {
+    flex: 1,
+    gap: 3,
+  },
+  adminBtnTitle: {
     fontWeight: "700",
     fontSize: 16,
+    letterSpacing: 0.2,
+  },
+  adminBtnSubtitle: {
+    fontSize: 13,
+    fontWeight: "500",
+    opacity: 0.8,
   },
   logoutBtn: {
     flexDirection: "row",
